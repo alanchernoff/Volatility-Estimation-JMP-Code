@@ -15,7 +15,7 @@ RV=colSums((dif)^2)
 #calculate BPV
 dif1=dif[1:(nrow(mat)-2),1:ncol(mat)] 
 dif2=dif[2:(nrow(mat)-1),1:ncol(mat)] 
-BPV=(sqrt(2)/sqrt(pi))*colSums(abs(dif1)*abs(dif2))
+BPV=(sqrt(2)/sqrt(pi))^(-2)*colSums(abs(dif1)*abs(dif2))
 #calculate TPV
 dif11=dif[1:(nrow(mat)-3), 1:ncol(mat)] 
 dif22=dif[2:(nrow(mat)-2), 1:ncol(mat)] 
