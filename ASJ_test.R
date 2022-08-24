@@ -52,10 +52,11 @@ comp = do.call(c, list(comp1,comp2,comp3))
 comp = as.character(comp)
 rownames(df) <- comp
 
-
 for (i in 1:ncol(df)){
   for (j in 1:length(interval_list)){
     for (k in 1:length(comp_list))
     df[(j-1)*length(comp_list)+k,i] <- jump_calc(comp_list[k],interval_list[j],yr[i])
   }
 }
+
+write.csv(df,"C:\\Users\\19084\\My Backup Files\\Data\\ASJ_table.csv", row.names = TRUE)
