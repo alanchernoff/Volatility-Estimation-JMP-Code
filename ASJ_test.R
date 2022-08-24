@@ -1,5 +1,6 @@
 setwd("/Users/19084/My Backup Files/Data/Data")
 
+#Jump Calculation
 jump_calc <- function (df,interval,yr){
 dfraw=read.csv(file=paste0(df,interval,yr,"e.csv"), header=FALSE, sep=",")
 dfmat=data.matrix(dfraw, rownames.force = NA)
@@ -36,13 +37,12 @@ jumpday = ifelse(normASJ > 0.95, 1, 0)
 sum(jumpday/length(jumpday))
 }
 
-jump_calc(comp_list[1],interval_list[2],yr[2])
-  
-
+#Identify Companies, Sample Intervals, and Sample Years
 comp_list = c("HD","IBM","aapl","msft") 
 interval_list = c("1min","2.5min","5min")
 yr= c("2012-2016","2017-2019","2012-2019")
 
+#Create the Empty Table
 df <- data.frame(matrix(ncol = length(yr), nrow = (length(interval_list)*length(comp_list))))
 colnames(df) <- yr
 comp1 <- lapply(comp_list, function(x) paste(x,interval_list[1], sep="_"))
@@ -52,6 +52,7 @@ comp = do.call(c, list(comp1,comp2,comp3))
 comp = as.character(comp)
 rownames(df) <- comp
 
+#Populate the Empty Table
 for (i in 1:ncol(df)){
   for (j in 1:length(interval_list)){
     for (k in 1:length(comp_list))
@@ -59,4 +60,5 @@ for (i in 1:ncol(df)){
   }
 }
 
+#Export the Table
 write.csv(df,"C:\\Users\\19084\\My Backup Files\\Data\\ASJ_table.csv", row.names = TRUE)
