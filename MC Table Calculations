@@ -223,7 +223,7 @@ las6 <-model_lasso(vol_names,interval_list,df6)
 
 df=MC_table_clean(jump_ind,vol_names,interval_list,1)
 
-df_new = df
+
 
 
 write.csv(df,"C:\\Users\\19084\\My Backup Files\\Data\\MC_table.csv", row.names = TRUE)
