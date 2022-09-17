@@ -210,7 +210,7 @@ W2 = (n1*srho +rho*W1)
 #use cor(W1[i,],W2[i,]) for any i < number of simulations
 
 #Noise
-noise = t(matrix(rnorm(n*t,0,0.001),nrow=t,ncol=n))
+noise = t(matrix(rnorm(n*t,0,0.001^2),nrow=t,ncol=n))
 
 #Heston Volatility Equations
 
@@ -276,7 +276,7 @@ j_price = t(matrix(rnorm(n*t,0,0.005),nrow=t,ncol=n)*jump) #rnorm(n*t,0,0.02)
 j_vol = t(matrix(exp(rnorm(n*t,-5,1)),nrow=t,ncol=n)*jump)
 
 #Noise
-noise = t(matrix(rnorm(n*t,0,0.001),nrow=t,ncol=n))
+noise = t(matrix(rnorm(n*t,0,0.001^2),nrow=t,ncol=n))
 
 #Heston Volatility Equation pre-jumps (calculated separately for ease of IV calculation)
 
@@ -352,7 +352,7 @@ j_price = t(matrix(rnorm(n*t,0,0.02),nrow=t,ncol=n)*jump)
 j_vol = t(matrix(exp(rnorm(n*t,-5,1)),nrow=t,ncol=n)*jump)
 
 #Noise
-noise = t(matrix(rnorm(n*t,0,0.001),nrow=t,ncol=n))
+noise = t(matrix(rnorm(n*t,0,0.001^2),nrow=t,ncol=n))
 
 #Heston Volatility Equation pre-jumps (calculated separately for ease of IV calculation)
 
