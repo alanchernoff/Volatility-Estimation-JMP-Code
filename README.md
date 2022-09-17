@@ -1,7 +1,12 @@
 # Volatlity Estimation
 
-Data Cleaning for 1 second stock ticker data in R
-<br/> &emsp; Converts 1 second ticker data to 1 min, 5 min, and 2.5min intervals
-<br/> Performs ASJ Jump tests from Cleaned Data Files
-<br/> Volatility Estimation from Cleaned Data Files
-<br/> Find the Sharp ratio of using a 5-20 MA cross trading strategy
+File 1: Data Cleaning for 1 second stock ticker data
+<br/> &emsp; converts 1 second ticker data to 1 min, 5 min, and 2.5min intervals
+<br/> File 2: Performs ASJ Jump tests from Cleaned Data Files
+<br/> File 3: Simulates the Monte Carlo data for modelling
+<br/> &emsp; used to create the OLS & LASSO models in File 4
+<br/> File 4: Simulates the Monte Carlo data used for the table creation in File 5
+<br/> File 5: Creates table assessing Monte Carlo data
+<br/> File 6: Creates a table with Sharp Ratios
+<br/>  &emsp; calculates the volatility measures (realized & combination)
+<br/>  &emsp; calculates the Sharp ratio of using a 5-20 MA cross trading strategy
