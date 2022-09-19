@@ -8,5 +8,5 @@ File 1: Data Cleaning for 1 second stock ticker data
 <br/> File 4: Simulates the Monte Carlo data used for the table creation in File 5
 <br/> File 5: Creates table assessing Monte Carlo data
 <br/> File 6: Creates a table with Sharp Ratios
-<br/>  &emsp; calculates the volatility measures (realized & combination)
-<br/>  &emsp; calculates the Sharp ratio of using a 5-20 MA cross trading strategy
+<br/>  &emsp; calculates the volatility measures (realized measures & combination measures)
+<br/>  &emsp; calculates the Sharp ratio of using a 5-20 MA cross (signalled by volatility) trading strategy
