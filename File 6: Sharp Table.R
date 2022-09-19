@@ -287,7 +287,11 @@ yr="2017-2019"
 
 sharps = sharp_table(comp_list,vol_names,interval_list,yr) #<-run this
 
+sharps <- t(sharps)
+colnames(sharps) <-comp_list
+sharps=sharps[-1,]
+
 View(sharps)
 
-#write.csv(sharps,"C:\\Users\\19084\\My Backup Files\\Data\\sharps.csv", row.names = TRUE)
+write.csv(sharps,"C:\\Users\\19084\\My Backup Files\\Data\\Sharp_table.csv", row.names = TRUE)
 
