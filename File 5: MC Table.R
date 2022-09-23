@@ -218,7 +218,7 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   vols$OLS_Vol_6 <- predict(ols6,vols)
   vols$LAS_Vol_6 <- predict(las6,as.matrix(vols[,1:18]))
   
-  vols['RV'] = PT_RV*252
+  vols['RV'] = PT_RV
   
   vols
   
