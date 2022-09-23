@@ -10,7 +10,7 @@ Vol_calc<- function (raw){
   #raw=read.csv(file=paste0(df,interval,yr,"e.csv"), header=FALSE, sep=",")
   mat=data.matrix(raw, rownames.force = NA)  
   mat=t(mat)
-  mat=log(mat)
+  #mat=log(mat)
   #calculate RV
   dif=diff(mat)
   RV=colSums((dif)^2)
@@ -94,7 +94,7 @@ MC_table<-function(jump_ind,vol_names,interval_list,i){
   vol_names_e = do.call(c, list(vol_names1,vol_names2,vol_names3))
   colnames(vols)<-vol_names_e
   
-  vols['RV'] = PT_RV*252
+  vols['RV'] = PT_RV
   
   
   
@@ -223,9 +223,9 @@ sharp_table<-function(comp,vol_names,interval_list,yr){
     raw2=read.csv(file=paste0(comp,interval_list[2],yr,"e.csv"), header=FALSE, sep=",")
     raw3=read.csv(file=paste0(comp,interval_list[3],yr,"e.csv"), header=FALSE, sep=",")
     
-    vols1=Vol_calc(raw1)
-    vols2=Vol_calc(raw2)
-    vols3=Vol_calc(raw3)
+    vols1=Vol_calc(log(raw1))
+    vols2=Vol_calc(log(raw2))
+    vols3=Vol_calc(log(raw3))
     
     vols_t <- merge(vols1,vols2, by = 'row.names',all = TRUE)
     vols_t$Row.names = as.numeric(vols_t$Row.names)
@@ -293,5 +293,5 @@ sharps=sharps[-1,]
 
 View(sharps)
 
-write.csv(sharps,"C:\\Users\\19084\\My Backup Files\\Data\\Sharp_table.csv", row.names = TRUE)
+write.csv(sharps,"C:\\Users\\19084\\My Backup Files\\Data\\sharp_Table.csv", row.names = TRUE)
 
