@@ -9,9 +9,9 @@ interval_list = c("1min","2.5min","5min")
 vol_names =c("RV","BPV","TPV","MinRV","MedRV","TRV")
 
 Vol_calc <- function (raw){
-  mat=data.matrix(raw, rownames.force = NA)  
+  mat=data.matrix(raw, rownames.force = NA) 
   mat=t(mat)
-  mat=log(mat)
+  #mat=log(mat)
   #calculate RV
   dif=diff(mat)
   RV=colSums((dif)^2)
@@ -86,7 +86,7 @@ MC_table<-function(jump_ind,vol_names,interval_list,i){
   vol_names_e = do.call(c, list(vol_names1,vol_names2,vol_names3))
   colnames(vols)<-vol_names_e
   
-  vols['RV'] = PT_RV*252
+  vols['RV'] = PT_RV
   
   
   
@@ -138,13 +138,40 @@ model_lasso <-function(vol_names,interval_list,vols){
   best_model  
 }
 
+df1 = MC_table(jump_ind,vol_names,interval_list,1)
+ols1 <-model_reg(vol_names,interval_list,df1)
+las1 <-model_lasso(vol_names,interval_list,df1)
+
+df2 = MC_table(jump_ind,vol_names,interval_list,2)
+ols2 <-model_reg(vol_names,interval_list,df2)
+las2 <-model_lasso(vol_names,interval_list,df2)
+
+df3 = MC_table(jump_ind,vol_names,interval_list,3)
+ols3 <-model_reg(vol_names,interval_list,df3)
+las3 <-model_lasso(vol_names,interval_list,df3)
+
+df4 = MC_table(jump_ind,vol_names,interval_list,4)
+ols4 <-model_reg(vol_names,interval_list,df4)
+las4 <-model_lasso(vol_names,interval_list,df4)
+
+df5 = MC_table(jump_ind,vol_names,interval_list,5)
+ols5 <-model_reg(vol_names,interval_list,df5)
+las5 <-model_lasso(vol_names,interval_list,df5)
+
+df6 = MC_table(jump_ind,vol_names,interval_list,6)
+ols6 <-model_reg(vol_names,interval_list,df6)
+las6 <-model_lasso(vol_names,interval_list,df6)
+
+setwd("/Users/19084/My Backup Files/Data/MC")
+jump_ind_table =c("no jumps","T1 jumps","t2 jumps","no jumps noise","T1 jumps noise","T2 jumps noise")
+
 MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
-  PT_RV=read.csv(file=paste0("T",jump_ind[i]," RV.csv"), header=TRUE, sep=",", row.names=1)
+  PT_RV=read.csv(file=paste0("MC Data ",jump_ind[i]," RV.csv"), header=TRUE, sep=",", row.names=1)
   
   jumpind = jump_ind[i] #i
-  raw1=read.csv(file=paste0("T",jumpind," ",interval_list[1],".csv"), header=TRUE, sep=",", row.names=1)
-  raw2=read.csv(file=paste0("T",jumpind," ",interval_list[2],".csv"), header=TRUE, sep=",", row.names=1)
-  raw3=read.csv(file=paste0("T",jumpind," ",interval_list[3],".csv"), header=TRUE, sep=",", row.names=1)
+  raw1=read.csv(file=paste0("MC Data ",jump_ind[i]," ",interval_list[1],".csv"), header=TRUE, sep=",", row.names=1)
+  raw2=read.csv(file=paste0("MC Data ",jump_ind[i]," ",interval_list[2],".csv"), header=TRUE, sep=",", row.names=1)
+  raw3=read.csv(file=paste0("MC Data ",jump_ind[i]," ",interval_list[3],".csv"), header=TRUE, sep=",", row.names=1)
   
   vols1=Vol_calc(raw1)
   vols2=Vol_calc(raw2)
@@ -197,35 +224,50 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   
 } 
 
-df1 = MC_table(jump_ind,vol_names,interval_list,1)
-ols1 <-model_reg(vol_names,interval_list,df1)
-las1 <-model_lasso(vol_names,interval_list,df1)
+for (i in 1:6){
 
-df2 = MC_table(jump_ind,vol_names,interval_list,2)
-ols2 <-model_reg(vol_names,interval_list,df2)
-las2 <-model_lasso(vol_names,interval_list,df2)
+  df=MC_table_clean(jump_ind_table,vol_names,interval_list,i) # edit this
 
-df3 = MC_table(jump_ind,vol_names,interval_list,3)
-ols3 <-model_reg(vol_names,interval_list,df3)
-las3 <-model_lasso(vol_names,interval_list,df3)
+  RMSE <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)))
+  colnames(RMSE) <- colnames(df)[1:ncol(df)-1]
 
-df4 = MC_table(jump_ind,vol_names,interval_list,4)
-ols4 <-model_reg(vol_names,interval_list,df4)
-las4 <-model_lasso(vol_names,interval_list,df4)
+  MAE <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)))
+  ccolnames(MAE) <- colnames(df)[1:ncol(df)-1]
 
-df5 = MC_table(jump_ind,vol_names,interval_list,5)
-ols5 <-model_reg(vol_names,interval_list,df5)
-las5 <-model_lasso(vol_names,interval_list,df5)
+  for(i in 1:ncol(RMSE)){
+  RMSE[,i]=(df[,i]-df[,ncol(df)])^2
+  MAE[,i]=abs(df[,i]-df[,ncol(df)])
+}
 
-df6 = MC_table(jump_ind,vol_names,interval_list,6)
-ols6 <-model_reg(vol_names,interval_list,df6)
-las6 <-model_lasso(vol_names,interval_list,df6)
+  n=100
+  RMSE_sub <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)/n))
+  MAE_sub <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)/n))
+  colnames(RMSE_sub) <- colnames(df)[1:ncol(df)-1]
+  colnames(MAE_sub) <- colnames(df)[1:ncol(df)-1]
 
-df=MC_table_clean(jump_ind,vol_names,interval_list,1)
+  for (j in 1:n){
+  for (i in 1:ncol(RMSE_sub)){
+    RMSE_sub[j,i] = sqrt(mean(RMSE[(1+(j-1)*n):(j*n),i]))
+    MAE_sub[j,i] = mean(MAE[(1+(j-1)*n):(j*n),i])
+  }
+}
 
+  RMSE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 3))
+  MAE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 3))
+  colnames(RMSE_table) <- colnames(df)[1:ncol(df)-1]
+  colnames(MAE_table) <- colnames(df)[1:ncol(df)-1]
 
+  for (i in 1:ncol(RMSE_table)){
+  RMSE_table[1,i] <- mean(RMSE_sub[,i])
+  RMSE_table[2,i] <- toString(quantile(RMSE_sub[,i], c(.10,.90)))
+  RMSE_table[3,i] <- toString
+  MAE_table[1,i] <- mean(MAE_sub[,i])
+  MAE_table[2,i] <- toString(quantile(MAE_sub[,i], c(.10,.90)))
+  MAE_table[3,i] <- toString(quantile(MAE_sub[,i], c(.05,.95)))
+  }
+  
+  paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",toString(i),".csv")
 
-
-write.csv(df,"C:\\Users\\19084\\My Backup Files\\Data\\MC_table.csv", row.names = TRUE)
-
-
+  write.csv(RMSE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",toString(i),".csv"), row.names = TRUE)
+  write.csv(MAE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\MAE_table_",toString(i),".csv"), row.names = TRUE)
+}
