@@ -266,8 +266,6 @@ for (i in 1:6){
   MAE_table[3,i] <- toString(quantile(MAE_sub[,i], c(.05,.95)))
   }
   
-  paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",toString(i),".csv")
-
   write.csv(RMSE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",toString(i),".csv"), row.names = TRUE)
   write.csv(MAE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\MAE_table_",toString(i),".csv"), row.names = TRUE)
 }
