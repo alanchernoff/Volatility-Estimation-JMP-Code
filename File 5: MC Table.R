@@ -224,15 +224,17 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   
 } 
 
-for (i in 1:6){
+for (k in 1:6){
 
-  df=MC_table_clean(jump_ind_table,vol_names,interval_list,i) # edit this
+  #k = 1
+
+  df=MC_table_clean(jump_ind_table,vol_names,interval_list,k) # edit 
 
   RMSE <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)))
   colnames(RMSE) <- colnames(df)[1:ncol(df)-1]
 
   MAE <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)))
-  ccolnames(MAE) <- colnames(df)[1:ncol(df)-1]
+  colnames(MAE) <- colnames(df)[1:ncol(df)-1]
 
   for(i in 1:ncol(RMSE)){
   RMSE[,i]=(df[,i]-df[,ncol(df)])^2
@@ -258,14 +260,15 @@ for (i in 1:6){
   colnames(MAE_table) <- colnames(df)[1:ncol(df)-1]
 
   for (i in 1:ncol(RMSE_table)){
-  RMSE_table[1,i] <- mean(RMSE_sub[,i])
-  RMSE_table[2,i] <- toString(quantile(RMSE_sub[,i], c(.10,.90)))
-  RMSE_table[3,i] <- toString
-  MAE_table[1,i] <- mean(MAE_sub[,i])
-  MAE_table[2,i] <- toString(quantile(MAE_sub[,i], c(.10,.90)))
-  MAE_table[3,i] <- toString(quantile(MAE_sub[,i], c(.05,.95)))
+    RMSE_table[1,i] <- format(round(mean(RMSE_sub[,i]), 4), nsmall = 4)
+    RMSE_table[2,i] <- toString(format(round(quantile(RMSE_sub[,i], c(.10,.90)), 4), nsmall = 4))
+    RMSE_table[3,i] <- toString(format(round(quantile(RMSE_sub[,i], c(.05,.95)), 4), nsmall = 4))
+    MAE_table[1,i] <- format(round(mean(MAE_sub[,i]), 4), nsmall = 4)
+    MAE_table[2,i] <- toString(format(round(quantile(MAE_sub[,i], c(.10,.90)), 4), nsmall = 4))
+    MAE_table[3,i] <- toString(format(round(quantile(MAE_sub[,i], c(.05,.95)), 4), nsmall = 4))
   }
   
-  write.csv(RMSE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",toString(i),".csv"), row.names = TRUE)
-  write.csv(MAE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\MAE_table_",toString(i),".csv"), row.names = TRUE)
+
+  write.csv(RMSE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",toString(k),".csv"), row.names = TRUE)
+  write.csv(MAE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\MAE_table_",toString(k),".csv"), row.names = TRUE)
 }
