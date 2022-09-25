@@ -252,12 +252,18 @@ for (k in 1:6){
     RMSE_sub[j,i] = sqrt(mean(RMSE[(1+(j-1)*n):(j*n),i]))
     MAE_sub[j,i] = mean(MAE[(1+(j-1)*n):(j*n),i])
   }
-}
+  }
+  
+  RMSE_sub = RMSE_sub*10^6
+  MAE_sub = MAE_sub*10^6
 
   RMSE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 3))
   MAE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 3))
   colnames(RMSE_table) <- colnames(df)[1:ncol(df)-1]
   colnames(MAE_table) <- colnames(df)[1:ncol(df)-1]
+  rownames(RMSE_table) < c("Mean","10th and 90th percentiles","5th and 95th percentiles")
+  rownames(MAE_table) < c("Mean","10th and 90th percentiles","5th and 95th percentiles")
+  
 
   for (i in 1:ncol(RMSE_table)){
     RMSE_table[1,i] <- format(round(mean(RMSE_sub[,i]), 4), nsmall = 4)
