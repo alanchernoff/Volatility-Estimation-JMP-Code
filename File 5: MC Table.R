@@ -139,27 +139,26 @@ model_lasso <-function(vol_names,interval_list,vols){
 }
 
 df1 = MC_table(jump_ind,vol_names,interval_list,1)
-ols1 <-model_reg(vol_names,interval_list,df1)
-las1 <-model_lasso(vol_names,interval_list,df1)
-
 df2 = MC_table(jump_ind,vol_names,interval_list,2)
-ols2 <-model_reg(vol_names,interval_list,df2)
-las2 <-model_lasso(vol_names,interval_list,df2)
-
 df3 = MC_table(jump_ind,vol_names,interval_list,3)
-ols3 <-model_reg(vol_names,interval_list,df3)
-las3 <-model_lasso(vol_names,interval_list,df3)
-
 df4 = MC_table(jump_ind,vol_names,interval_list,4)
-ols4 <-model_reg(vol_names,interval_list,df4)
-las4 <-model_lasso(vol_names,interval_list,df4)
-
 df5 = MC_table(jump_ind,vol_names,interval_list,5)
-ols5 <-model_reg(vol_names,interval_list,df5)
-las5 <-model_lasso(vol_names,interval_list,df5)
-
 df6 = MC_table(jump_ind,vol_names,interval_list,6)
+
+
+ols1 <-model_reg(vol_names,interval_list,df1)
+ols2 <-model_reg(vol_names,interval_list,df2)
+ols3 <-model_reg(vol_names,interval_list,df3)
+ols4 <-model_reg(vol_names,interval_list,df4)
+ols5 <-model_reg(vol_names,interval_list,df5)
 ols6 <-model_reg(vol_names,interval_list,df6)
+
+
+las1 <-model_lasso(vol_names,interval_list,df1)
+las2 <-model_lasso(vol_names,interval_list,df2)
+las3 <-model_lasso(vol_names,interval_list,df3)
+las4 <-model_lasso(vol_names,interval_list,df4)
+las5 <-model_lasso(vol_names,interval_list,df5)
 las6 <-model_lasso(vol_names,interval_list,df6)
 
 setwd("/Users/19084/My Backup Files/Data/MC")
@@ -206,17 +205,17 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   
   
   vols$OLS_Vol_1 <- predict(ols1,vols)
-  vols$LAS_Vol_1 <- predict(las1,as.matrix(vols[,1:18]))
   vols$OLS_Vol_2 <- predict(ols2,vols)
-  vols$LAS_Vol_2 <- predict(las2,as.matrix(vols[,1:18]))
   vols$OLS_Vol_3 <- predict(ols3,vols)
-  vols$LAS_Vol_3 <- predict(las3,as.matrix(vols[,1:18]))
   vols$OLS_Vol_4 <- predict(ols4,vols)
-  vols$LAS_Vol_4 <- predict(las4,as.matrix(vols[,1:18]))
   vols$OLS_Vol_5 <- predict(ols5,vols)
-  vols$LAS_Vol_5 <- predict(las5,as.matrix(vols[,1:18]))
   vols$OLS_Vol_6 <- predict(ols6,vols)
-  vols$LAS_Vol_6 <- predict(las6,as.matrix(vols[,1:18]))
+  vols$LASSO_Vol_1 <- predict(las1,as.matrix(vols[,1:18]))
+  vols$LASSO_Vol_2 <- predict(las2,as.matrix(vols[,1:18]))
+  vols$LASSO_Vol_3 <- predict(las3,as.matrix(vols[,1:18]))
+  vols$LASSO_Vol_4 <- predict(las4,as.matrix(vols[,1:18]))
+  vols$LASSO_Vol_5 <- predict(las5,as.matrix(vols[,1:18]))
+  vols$LASSO_Vol_6 <- predict(las6,as.matrix(vols[,1:18]))
   
   vols['RV'] = PT_RV
   
@@ -261,8 +260,8 @@ for (k in 1:6){
   MAE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 3))
   colnames(RMSE_table) <- colnames(df)[1:ncol(df)-1]
   colnames(MAE_table) <- colnames(df)[1:ncol(df)-1]
-  rownames(RMSE_table) < c("Mean","10th and 90th percentiles","5th and 95th percentiles")
-  rownames(MAE_table) < c("Mean","10th and 90th percentiles","5th and 95th percentiles")
+  colnames(RMSE_table) < c("Mean","10th and 90th percentiles","5th and 95th percentiles")
+  colnames(MAE_table) < c("Mean","10th and 90th percentiles","5th and 95th percentiles")
   
 
   for (i in 1:ncol(RMSE_table)){
@@ -274,6 +273,10 @@ for (k in 1:6){
     MAE_table[3,i] <- toString(format(round(quantile(MAE_sub[,i], c(.05,.95)), 4), nsmall = 4))
   }
   
+  RMSE_table = t(RMSE_table)
+  MAE_table = t(MAE_table)
+  colnames(RMSE_table) <- c("Mean","10th and 90th percentiles","5th and 95th percentiles")
+  colnames(MAE_table) <- c("Mean","10th and 90th percentiles","5th and 95th percentiles")
 
   write.csv(RMSE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",toString(k),".csv"), row.names = TRUE)
   write.csv(MAE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\MAE_table_",toString(k),".csv"), row.names = TRUE)
