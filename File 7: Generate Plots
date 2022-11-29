@@ -1,0 +1,110 @@
+setwd("/Users/19084/My Backup Files/Data/Data") #double data folder
+library(dplyr)
+library(TTR)
+library(tidyverse)
+library(matrixStats)
+library(ggplot2)
+
+
+comp_list = c("HD","IBM","aapl","msft") 
+yr="2017-2019"
+dates = paste0("dates", yr,".csv")
+interval_list = c("1min","2.5min","5min")
+datefile=read.csv(dates, header=FALSE, sep=",")
+
+c2 <- "#000000"
+c1 <- "#5D8AA8" #69b3a2 #rgb(0.2, 0.6, 0.9, 1)
+coeff = c(0.000006,0.000015,0.00005,0.00005)
+
+comp=comp_list[4]
+coeff=coeff[4]
+
+rv_calc<- function (raw){
+  mat=data.matrix(raw, rownames.force = NA)  
+  mat=t(mat)
+  #mat=log(mat)
+  #calculate RV
+  dif=diff(mat)
+  RV=colSums((dif)^2)
+  RV
+}
+Vol_calc<- function (raw){
+  #Vol_calc <- function (df,interval,yr){
+  #raw=read.csv(file=paste0(df,interval,yr,"e.csv"), header=FALSE, sep=",")
+  mat=data.matrix(raw, rownames.force = NA)  
+  mat=t(mat)
+  #mat=log(mat)
+  #calculate RV
+  dif=diff(mat)
+  RV=colSums((dif)^2)
+  #calculate BPV
+  dif1=dif[1:(nrow(mat)-2),1:ncol(mat)] 
+  dif2=dif[2:(nrow(mat)-1),1:ncol(mat)] 
+  BPV=(sqrt(2)/sqrt(pi))^(-2)*colSums(abs(dif1)*abs(dif2))
+  #calculate TPV
+  dif11=dif[1:(nrow(mat)-3), 1:ncol(mat)] 
+  dif22=dif[2:(nrow(mat)-2), 1:ncol(mat)] 
+  dif33=dif[3:(nrow(mat)-1), 1:ncol(mat)] 
+  cons=(((2^(1/3))*gamma(5/6))/gamma(1/2))^(-3) 
+  TPV=cons*colSums((abs(dif11)^(2/3))*(abs(dif22)^(2/3))*(abs(dif33)^(2/3)))
+  #calculate MinRV
+  minvec=matrix(0, (nrow(mat)-2), ncol(mat)) 
+  for (j in 1:ncol(mat)){for (i in 1:(nrow(mat)-2)){minvec[i,j]=(min( abs(dif1[i,j]), abs(dif2[i,j]) ))^2}} 
+  MinRV=(pi/(pi-2))*(nrow(mat)/(nrow(mat)-1))*colSums(minvec) 
+  #calculate MedRV
+  medvec=matrix(0, (nrow(mat)-3), ncol(mat)) 
+  for (j in 1:ncol(mat)){for (i in 1:(nrow(mat)-3)){medvec[i,j]=(median(c(abs(dif11[i,j]),abs(dif22[i,j]),abs(dif33[i,j]))))^2}} 
+  MedRV=(pi/(6-4*sqrt(3)+pi))*(nrow(mat)/(nrow(mat)-2))*colSums(medvec)
+  #calculate TRV
+  delta=1/nrow(mat) 
+  omega=0.47 
+  alpha=matrix(0, (nrow(mat)-1), ncol(mat)) 
+  for (j in 1: ncol(mat)){for (i in 1: (nrow(mat)-1)){if (abs(dif[i,j]) <= sqrt(delta)){alpha[i,j]=abs((dif[i,j]))^2} else {alpha[i,j]=0}}} 
+  alph_fin=5*sqrt(colSums(alpha)) 
+  trun=matrix(0, (nrow(mat)-1), ncol(mat))
+  for (j in 1: ncol(mat)){for (i in 1: (nrow(mat)-1)){if (abs(dif[i,j]) <= alph_fin[j]*delta^omega){trun[i,j]=abs((dif[i,j]))^2} else {trun[i,j]=0}}} 
+  TRV=colSums(trun) 
+  vol_all = bind_cols(RV,BPV,TPV,MinRV,MedRV,TRV)
+  mean_vol=rowMeans(vol_all)
+  mean_vol
+}
+raw1=read.csv(file=paste0(comp,interval_list[1],yr,"e.csv"), header=FALSE, sep=",")
+rv=rv_calc(log(raw1))
+meanvol=Vol_calc(log(raw1))
+close=read.csv(file=paste0(comp,"close",yr,"e.csv"),header=FALSE)
+datefile = datefile[,1]
+close = close[,1]
+
+merged = data.frame(datefile,close,rv)
+merged$dates = as.Date(merged$datefile, "%m/%d/%Y")
+
+#png('plot.png')
+ggplot(merged, aes(x=dates)) +
+  geom_bar( aes(y=rv/coeff), stat="identity", size=.1, fill=c1, color=c1, alpha=.1) + 
+  geom_line( aes(y=close),size=.1, color=c2 ) +
+    scale_y_continuous(
+    # Features of the first axis
+    name = "Closing Price",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis( trans=~.*coeff, name="Volatility")
+  ) +
+  theme_light()+
+  theme(
+        axis.title.y = element_text(color = c2, size=13),
+        axis.title.y.right = element_text(color = c1, size=13),
+        axis.title.x=element_blank()
+  )
+#dev.off()
+
+for(i in 1:length(comp_list)){
+  comp = comp_list[i]
+  raw1=read.csv(file=paste0(comp,interval_list[1],yr,"e.csv"), header=FALSE, sep=",")
+  rv=rv_calc(log(raw1))
+  meanvol=Vol_calc(log(raw1))
+  close=read.csv(file=paste0(comp,"close",yr,"e.csv"),header=FALSE)
+  datefile = datefile[,1]
+  close = close[,1]
+  
+  ## editting this
+  
+}
