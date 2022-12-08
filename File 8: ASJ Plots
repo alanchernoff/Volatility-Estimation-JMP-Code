@@ -1,0 +1,102 @@
+setwd("/Users/19084/My Backup Files/Data/Data")
+
+#Jump Calculation
+jump_calc <- function (df,interval,yr){
+  dfraw=read.csv(file=paste0(df,interval,yr,"e.csv"), header=FALSE, sep=",")
+  dfmat=data.matrix(dfraw, rownames.force = NA)
+  dfmat=t(dfmat)
+  dfmat=log(dfmat)
+  dfdiff=diff(dfmat)
+  delta=1/nrow(dfmat)
+  alpha=matrix(0, (nrow(dfmat)-1), ncol(dfmat))
+  for (j in 1: ncol(dfmat)){for (i in 1: (nrow(dfmat)-1)){if (abs(dfdiff[i,j]) <= sqrt(delta)){alpha[i,j]=abs((dfdiff[i,j]))^2} else {alpha[i,j]=0}}} 
+  alph_fin=5*sqrt(colSums(alpha)) 
+  omega=0.47 
+  BPD = colSums((abs(dfdiff))^4) 
+  kfreq = (nrow(dfmat)+1)/2 
+  data_10 = matrix(0, kfreq, ncol(dfmat)) 
+  for (j in 1: ncol(dfmat)){for (i in 1:kfreq){data_10[i,j] = dfmat[(i-1)*2+1,j]}} 
+  BPK = colSums((abs(diff(data_10)))^4) 
+  SPK = BPK/BPD 
+  trun_4 = matrix(0,nrow(dfmat)-1,ncol(dfmat)) 
+  for (j in 1: ncol(dfmat)){for (i in 1:(nrow(dfmat)-1)){ 
+    if (abs(dfdiff[i,j]) <= alph_fin[j]*delta^omega){trun_4[i,j] = abs((dfdiff[i,j]))^4}
+    else {trun_4[i,j] = 0}}} 
+  mp = pi^(-0.5)*4*gamma(5/2) 
+  AP = (delta^(-1)/mp)*colSums(trun_4) 
+  trun_8 = matrix(0, (nrow(dfmat)-1), ncol(dfmat)) 
+  for (j in 1: ncol(dfmat)){for (i in 1: (nrow(dfmat)-1)){ 
+    if (abs(dfdiff[i,j]) <= alph_fin[j]*delta^omega){trun_8[i,j] = abs((dfdiff[i,j]))^8} 
+    else {trun_8[i,j] = 0}}} 
+  mp_8 = pi^(-0.5)*16*gamma(9/2) 
+  AP_8 = (delta^(-3)/mp_8)*colSums(trun_8) 
+  Var = (delta* AP_8*160)/(3*AP^2) 
+  ASJ = (2 - SPK)/sqrt(Var) 
+  normASJ=pnorm(ASJ)
+  jumpday = ifelse(normASJ > 0.95, ASJ, 0)
+  jumpday
+}
+
+#Identify Companies, Sample Intervals, and Sample Years
+comp_list = c("HD","IBM","aapl","msft") 
+interval_list = c("1min","2.5min","5min")
+yr= "2017-2019" #c("2012-2016","2017-2019","2012-2019")
+dates = paste0("dates", yr,".csv")
+datefile=read.csv(dates, header=FALSE, sep=",")
+datefile = datefile[,1]
+
+c1 <- "#5D8AA8"
+
+#Generate Plots
+for (j in 1:length(interval_list)){
+  for (k in 1:length(comp_list)){
+    jumpdays = jump_calc(comp_list[k],interval_list[j],yr)
+    merged1 = data.frame(datefile,jumpdays)
+    merged1$dates = as.Date(merged1$datefile, "%m/%d/%Y")
+    
+    fig1 = ggplot(merged1, aes(x=dates)) +
+      geom_point( aes(y=jumpdays), color = c1) + 
+      scale_y_continuous(
+        expand = c(0.005,0)
+      ) + 
+      scale_x_date(date_breaks="1 year",date_labels="%Y", expand = c(0.005,0)) +
+      theme_classic()+
+      theme(
+        axis.title.y = element_blank(),
+        axis.title.x=element_blank(),
+        axis.line.y=element_blank(),
+        axis.line.y.right=element_blank(),
+        axis.line.x=element_blank(),
+        panel.border=element_rect(color="black",fill=NA,size=0.4)
+      )
+    CairoPNG(file=paste0(comp_list[k],interval_list[j],"jumps.png"),width = 6,height = 2,units="in",dpi=96) 
+    print(fig1)
+    dev.off()
+    
+  }
+}
+
+k=1
+j=1
+jumpdays = jump_calc(comp_list[k],interval_list[j],yr)
+merged1 = data.frame(datefile,jumpdays)
+merged1$dates = as.Date(merged1$datefile, "%m/%d/%Y")
+
+fig1 = ggplot(merged1, aes(x=dates)) +
+  geom_point( aes(y=jumpdays), color = c1) + 
+   scale_y_continuous(
+    expand = c(0.005,0)
+  ) + 
+  scale_x_date(date_breaks="1 year",date_labels="%Y", expand = c(0.005,0)) +
+  theme_classic()+
+  theme(
+    axis.title.y = element_blank(),
+    axis.title.x=element_blank(),
+    axis.line.y=element_blank(),
+    axis.line.y.right=element_blank(),
+    axis.line.x=element_blank(),
+    panel.border=element_rect(color="black",fill=NA,size=0.4)
+  )
+CairoPNG(file=paste0(comp,interval_list[j],"jumps.png"),width = 6,height = 2,units="in",dpi=96) 
+print(fig1)
+dev.off()
