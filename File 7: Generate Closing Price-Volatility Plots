@@ -103,6 +103,7 @@ for(i in 1:length(comp_list)){
     scale_x_date(date_breaks="1 year",date_labels="%Y", expand = c(0.005,0)) +
     theme_classic()+
     theme(
+      aspect.ratio = 1,
       axis.title.y = element_text(color = c2, size=13),
       axis.title.y.right = element_text(color = c1, size=13),
       axis.title.x=element_blank(),
@@ -111,7 +112,7 @@ for(i in 1:length(comp_list)){
       axis.line.x=element_blank(),
       panel.border=element_rect(color="black",fill=NA,size=0.4)
     )
-  CairoPNG(file=paste0(comp,interval_list[j],"rv.png"),width = 4,height = 3.3,units="in",dpi=96) 
+  CairoPNG(file=paste0(comp,interval_list[j],"rv.png"),width = 3.5,height = 2.8,units="in",dpi=96) 
   print(fig1)
   Sys.sleep(time1)
   print(fig1)
@@ -130,6 +131,7 @@ for(i in 1:length(comp_list)){
     scale_x_date(date_breaks="1 year",date_labels="%Y", expand = c(0.005,0)) +
     theme_classic()+
     theme(
+      aspect.ratio = 1,
       axis.title.y = element_text(color = c2, size=13),
       axis.title.y.right = element_text(color = c1, size=13),
       axis.title.x=element_blank(),
@@ -138,7 +140,7 @@ for(i in 1:length(comp_list)){
       axis.line.x=element_blank(),
       panel.border=element_rect(color="black",fill=NA,size=0.4)
     )
-  CairoPNG(file=paste0(comp,interval_list[j],"meanvol.png"),width = 4,height = 3.3,units="in",dpi=96) 
+  CairoPNG(file=paste0(comp,interval_list[j],"meanvol.png"),width = 3.5,height = 2.8,units="in",dpi=96) 
   print(fig2)
   Sys.sleep(time1)
   print(fig2)
@@ -178,6 +180,8 @@ fig1 = ggplot(merged1, aes(x=dates)) +
   scale_x_date(date_breaks="1 year",date_labels="%Y", expand = c(0.005,0)) +
   theme_classic()+
   theme(
+    title = element_blank(),
+    aspect.ratio =1,
     axis.title.y = element_text(color = c2, size=13),
     axis.title.y.right = element_text(color = c1, size=13),
     axis.title.x=element_blank(),
@@ -186,9 +190,9 @@ fig1 = ggplot(merged1, aes(x=dates)) +
     axis.line.x=element_blank(),
     panel.border=element_rect(color="black",fill=NA,size=0.4)
   )
-#CairoPNG(file=paste0(comp,interval_list[j],"rv.png"),width = 4,height = 3.3,units="in",dpi=96) 
+CairoPNG(file=paste0(comp,interval_list[j],"rv.png"),width = 3.5,height = 2.8,units="in",dpi=96) 
 print(fig1)
 fig1
 #Sys.sleep(time1)
 #print(fig1)
-#dev.off()
+dev.off()
