@@ -2,7 +2,7 @@
 
 File 1: Data Cleaning for 1 second stock ticker data
 <br/> &emsp; converts 1 second ticker data to 1 min, 5 min, and 2.5min intervals
-<br/> File 2: Performs ASJ Jump tests from Cleaned Data Files
+<br/> File 2: Performs ASJ Jump tests from cleaned data and converts to a table
 <br/> File 3: Simulates the Monte Carlo data for modelling
 <br/> &emsp; used to create the OLS & LASSO models in File 4
 <br/> File 4: Simulates the Monte Carlo data used for the table creation in File 5
