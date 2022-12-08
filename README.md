@@ -10,3 +10,5 @@ File 1: Data Cleaning for 1 second stock ticker data
 <br/> File 6: Creates a table with Sharp Ratios
 <br/>  &emsp; calculates the volatility measures (realized measures & combination measures)
 <br/>  &emsp; calculates the Sharp ratio of using a 5-20 MA cross (signalled by volatility) trading strategy
+<br/> File 7: Creates plots of Stock Closing Price vs Estimated Volatility
+<br/> File 8: Creates plots of ASJ test statistics
