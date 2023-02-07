@@ -70,9 +70,9 @@ Estimation_table<-function(jump_ind,vol_names,interval_list,i,yr_pre){
   raw2_pre=read.csv(file=paste0(comp,interval_list[2],yr_pre,"e.csv"), header=FALSE, sep=",")
   raw3_pre=read.csv(file=paste0(comp,interval_list[3],yr_pre,"e.csv"), header=FALSE, sep=",")
   
-  vols1=Vol_calc(raw1)
-  vols2=Vol_calc(raw2)
-  vols3=Vol_calc(raw3)
+  vols1=Vol_calc(log(raw1))
+  vols2=Vol_calc(log(raw2))
+  vols3=Vol_calc(log(raw3))
   
   vols_t <- merge(vols1,vols2, by = 'row.names',all = TRUE)
   vols_t$Row.names = as.numeric(vols_t$Row.names)
