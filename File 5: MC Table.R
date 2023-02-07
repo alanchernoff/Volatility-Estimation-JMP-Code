@@ -151,18 +151,6 @@ model_lasso <-function(vol_names,interval_list,vols){
   best_model  
 }
 
-df1 = MC_table(jump_ind,vol_names,interval_list,1)
-df2 = MC_table(jump_ind,vol_names,interval_list,2)
-df3 = MC_table(jump_ind,vol_names,interval_list,3)
-df4 = MC_table(jump_ind,vol_names,interval_list,4)
-
-ols_full <-model_reg(vol_names,interval_list,df)
-ols1 <-model_reg(vol_names,interval_list,df)
-ols2.5 <-model_reg(vol_names,interval_list,df)
-ols5 <-model_reg(vol_names,interval_list,df)
-
-las <-model_lasso(vol_names,interval_list,df)
-
 setwd("/Users/19084/My Backup Files/Data/MC")
 jump_ind_table =c("no jumps","T1 jumps","t2 jumps","no jumps noise","T1 jumps noise","T2 jumps noise") #edit this line
 
