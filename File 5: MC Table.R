@@ -4,7 +4,7 @@ library(glmnet)
 
 setwd("/Users/19084/My Backup Files/Data/MC Reg Data")
 
-jump_ind =c("0","1","2","3","4","5")
+jump_ind =c("0","1","2","3")
 interval_list = c("1min","2.5min","5min")
 vol_names =c("RV","BPV","TPV","MinRV","MedRV","TRV")
 
@@ -94,11 +94,24 @@ MC_table<-function(jump_ind,vol_names,interval_list,i){
   
 }
 
-model_reg <- function(vol_names,interval_list,vols){
+model_reg_full <- function(vol_names,interval_list,vols){
   vol_names1 <- lapply(vol_names, function(x) paste(x,interval_list[1], sep="_"))
   vol_names2 <- lapply(vol_names, function(x) paste(x,interval_list[2], sep="_"))
   vol_names3 <- lapply(vol_names, function(x) paste(x,interval_list[3], sep="_"))
   vol_names_e = do.call(c, list(vol_names1,vol_names2,vol_names3))
+  form = "RV~0"
+  len = length(vol_names_e)
+  for (i in 1:len){
+    form =paste0(form,"+",vol_names_e[i])
+  }
+  model1 <-lm(eval(parse(text=form)),data=vols)
+  model1
+  
+}
+
+model_reg <- function(vol_names,interval_list,i,vols){
+  vol_names <- lapply(vol_names, function(x) paste(x,interval_list[i], sep="_"))
+  vol_names_e = do.call(c, list(vol_names))
   form = "RV~0"
   len = length(vol_names_e)
   for (i in 1:len){
@@ -142,40 +155,44 @@ df1 = MC_table(jump_ind,vol_names,interval_list,1)
 df2 = MC_table(jump_ind,vol_names,interval_list,2)
 df3 = MC_table(jump_ind,vol_names,interval_list,3)
 df4 = MC_table(jump_ind,vol_names,interval_list,4)
-df5 = MC_table(jump_ind,vol_names,interval_list,5)
-df6 = MC_table(jump_ind,vol_names,interval_list,6)
 
+ols_full <-model_reg(vol_names,interval_list,df)
+ols1 <-model_reg(vol_names,interval_list,df)
+ols2.5 <-model_reg(vol_names,interval_list,df)
+ols5 <-model_reg(vol_names,interval_list,df)
 
-ols1 <-model_reg(vol_names,interval_list,df1)
-ols2 <-model_reg(vol_names,interval_list,df2)
-ols3 <-model_reg(vol_names,interval_list,df3)
-ols4 <-model_reg(vol_names,interval_list,df4)
-ols5 <-model_reg(vol_names,interval_list,df5)
-ols6 <-model_reg(vol_names,interval_list,df6)
-
-
-las1 <-model_lasso(vol_names,interval_list,df1)
-las2 <-model_lasso(vol_names,interval_list,df2)
-las3 <-model_lasso(vol_names,interval_list,df3)
-las4 <-model_lasso(vol_names,interval_list,df4)
-las5 <-model_lasso(vol_names,interval_list,df5)
-las6 <-model_lasso(vol_names,interval_list,df6)
+las <-model_lasso(vol_names,interval_list,df)
 
 setwd("/Users/19084/My Backup Files/Data/MC")
-jump_ind_table =c("no jumps","T1 jumps","t2 jumps","no jumps noise","T1 jumps noise","T2 jumps noise")
+jump_ind_table =c("no jumps","T1 jumps","t2 jumps","no jumps noise","T1 jumps noise","T2 jumps noise") #edit this line
 
 MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
+  
+  #generate volatilities for OLS and LASSO estimation
+  df = MC_table(jump_ind,vol_names,interval_list,i)
+  
+  #estimate OLS and LASSO models 
+  ols_full <-model_reg(vol_names,interval_list,df)
+  ols1 <-model_reg(vol_names,interval_list,df)
+  ols2.5 <-model_reg(vol_names,interval_list,df)
+  ols5 <-model_reg(vol_names,interval_list,df)
+  las <-model_lasso(vol_names,interval_list,df)
+  
+  #read in pseudo true volatiltiy from larger data set
   PT_RV=read.csv(file=paste0("MC Data ",jump_ind[i]," RV.csv"), header=TRUE, sep=",", row.names=1)
   
+  #read in sub-sampled data
   jumpind = jump_ind[i] #i
   raw1=read.csv(file=paste0("MC Data ",jump_ind[i]," ",interval_list[1],".csv"), header=TRUE, sep=",", row.names=1)
   raw2=read.csv(file=paste0("MC Data ",jump_ind[i]," ",interval_list[2],".csv"), header=TRUE, sep=",", row.names=1)
   raw3=read.csv(file=paste0("MC Data ",jump_ind[i]," ",interval_list[3],".csv"), header=TRUE, sep=",", row.names=1)
   
+  #calculate sub-sampled volatilities
   vols1=Vol_calc(raw1)
   vols2=Vol_calc(raw2)
   vols3=Vol_calc(raw3)
   
+  #merge sub-sampled volatilities
   vols_t <- merge(vols1,vols2, by = 'row.names',all = TRUE)
   vols_t$Row.names = as.numeric(vols_t$Row.names)
   vols_t = vols_t[order(vols_t$Row.names),]
@@ -188,12 +205,14 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   rownames(vols) <- NULL
   vols <- subset(vols, select = -c(Row.names))
   
+  #rename sub-sampled volatilities
   vol_names1 <- lapply(vol_names, function(x) paste(x,interval_list[1], sep="_"))
   vol_names2 <- lapply(vol_names, function(x) paste(x,interval_list[2], sep="_"))
   vol_names3 <- lapply(vol_names, function(x) paste(x,interval_list[3], sep="_"))
   vol_names_e = do.call(c, list(vol_names1,vol_names2,vol_names3))
   colnames(vols)<-vol_names_e
   
+  #calculaute mean volatilities
   vols$MeanVol_1min <-rowMeans(as.matrix(vols[,1:6]))
   vols$MeanVol_2.5min <-rowMeans(as.matrix(vols[,7:12]))
   vols$MeanVol_5min <-rowMeans(as.matrix(vols[,13:18]))
@@ -203,19 +222,12 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   vols$MeanJVol_5min <-rowMeans(as.matrix(vols[,c(14,15,18)]))
   vols$MeanJVol_all <-rowMeans(as.matrix(vols[,c(2,3,6,8,9,12,14,15,18)]))
   
-  
+  #calculate OLS and LASSO volatilities
+  vols$OLS_Vol_full <- predict(ols_full,vols)
   vols$OLS_Vol_1 <- predict(ols1,vols)
-  vols$OLS_Vol_2 <- predict(ols2,vols)
-  vols$OLS_Vol_3 <- predict(ols3,vols)
-  vols$OLS_Vol_4 <- predict(ols4,vols)
+  vols$OLS_Vol_2.5 <- predict(ols2.5,vols)
   vols$OLS_Vol_5 <- predict(ols5,vols)
-  vols$OLS_Vol_6 <- predict(ols6,vols)
-  vols$LASSO_Vol_1 <- predict(las1,as.matrix(vols[,1:18]))
-  vols$LASSO_Vol_2 <- predict(las2,as.matrix(vols[,1:18]))
-  vols$LASSO_Vol_3 <- predict(las3,as.matrix(vols[,1:18]))
-  vols$LASSO_Vol_4 <- predict(las4,as.matrix(vols[,1:18]))
-  vols$LASSO_Vol_5 <- predict(las5,as.matrix(vols[,1:18]))
-  vols$LASSO_Vol_6 <- predict(las6,as.matrix(vols[,1:18]))
+  vols$LASSO_Vol <- predict(las,as.matrix(vols[,1:18]))
   
   vols['RV'] = PT_RV
   
@@ -223,7 +235,7 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   
 } 
 
-for (k in 1:6){
+for (k in 1:4){
 
   #k = 1
 
@@ -232,52 +244,35 @@ for (k in 1:6){
   RMSE <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)))
   colnames(RMSE) <- colnames(df)[1:ncol(df)-1]
 
-  MAE <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)))
-  colnames(MAE) <- colnames(df)[1:ncol(df)-1]
 
   for(i in 1:ncol(RMSE)){
   RMSE[,i]=(df[,i]-df[,ncol(df)])^2
-  MAE[,i]=abs(df[,i]-df[,ncol(df)])
 }
 
   n=100
   RMSE_sub <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)/n))
-  MAE_sub <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)/n))
   colnames(RMSE_sub) <- colnames(df)[1:ncol(df)-1]
-  colnames(MAE_sub) <- colnames(df)[1:ncol(df)-1]
 
   for (j in 1:n){
   for (i in 1:ncol(RMSE_sub)){
     RMSE_sub[j,i] = sqrt(mean(RMSE[(1+(j-1)*n):(j*n),i]))
-    MAE_sub[j,i] = mean(MAE[(1+(j-1)*n):(j*n),i])
   }
   }
   
   RMSE_sub = RMSE_sub*10^6
-  MAE_sub = MAE_sub*10^6
 
   RMSE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 3))
-  MAE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 3))
   colnames(RMSE_table) <- colnames(df)[1:ncol(df)-1]
-  colnames(MAE_table) <- colnames(df)[1:ncol(df)-1]
-  colnames(RMSE_table) < c("Mean","10th and 90th percentiles","5th and 95th percentiles")
-  colnames(MAE_table) < c("Mean","10th and 90th percentiles","5th and 95th percentiles")
-  
+  colnames(RMSE_table) < c("Mean","5th and 95th percentiles")
+
 
   for (i in 1:ncol(RMSE_table)){
     RMSE_table[1,i] <- format(round(mean(RMSE_sub[,i]), 4), nsmall = 4)
-    RMSE_table[2,i] <- toString(format(round(quantile(RMSE_sub[,i], c(.10,.90)), 4), nsmall = 4))
-    RMSE_table[3,i] <- toString(format(round(quantile(RMSE_sub[,i], c(.05,.95)), 4), nsmall = 4))
-    MAE_table[1,i] <- format(round(mean(MAE_sub[,i]), 4), nsmall = 4)
-    MAE_table[2,i] <- toString(format(round(quantile(MAE_sub[,i], c(.10,.90)), 4), nsmall = 4))
-    MAE_table[3,i] <- toString(format(round(quantile(MAE_sub[,i], c(.05,.95)), 4), nsmall = 4))
+    RMSE_table[2,i] <- toString(format(round(quantile(RMSE_sub[,i], c(.05,.95)), 4), nsmall = 4))
   }
   
   RMSE_table = t(RMSE_table)
-  MAE_table = t(MAE_table)
-  colnames(RMSE_table) <- c("Mean","10th and 90th percentiles","5th and 95th percentiles")
-  colnames(MAE_table) <- c("Mean","10th and 90th percentiles","5th and 95th percentiles")
+  colnames(RMSE_table) <- c("Mean","5th and 95th percentiles")
 
   write.csv(RMSE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",toString(k),".csv"), row.names = TRUE)
-  write.csv(MAE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\MAE_table_",toString(k),".csv"), row.names = TRUE)
 }
