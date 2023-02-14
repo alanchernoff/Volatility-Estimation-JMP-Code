@@ -57,22 +57,22 @@ Vol_calc<- function (raw){
 
 ### Generate OLS & LASSO Models
 
-setwd("/Users/19084/My Backup Files/Data/MC Reg Data")
+setwd("/Users/19084/My Backup Files/Data/Data")
 
 interval_list = c("1min","2.5min","5min")
 vol_names =c("RV","BPV","TPV","MinRV","MedRV","TRV")
 
 
-Estimation_table<-function(jump_ind,vol_names,interval_list,i,yr_pre){
+Estimation_table<-function(vol_names,interval_list,i,yr_pre){
   comp = comp_list[i]#i
   PT_RV=read.csv(file=paste0("pre",comp,"RV.csv"), header=TRUE, sep=",", row.names=1)
   raw1_pre=read.csv(file=paste0(comp,interval_list[1],yr_pre,"e.csv"), header=FALSE, sep=",")
   raw2_pre=read.csv(file=paste0(comp,interval_list[2],yr_pre,"e.csv"), header=FALSE, sep=",")
   raw3_pre=read.csv(file=paste0(comp,interval_list[3],yr_pre,"e.csv"), header=FALSE, sep=",")
   
-  vols1=Vol_calc(log(raw1))
-  vols2=Vol_calc(log(raw2))
-  vols3=Vol_calc(log(raw3))
+  vols1=Vol_calc(log(raw1_pre))
+  vols2=Vol_calc(log(raw2_pre))
+  vols3=Vol_calc(log(raw3_pre))
   
   vols_t <- merge(vols1,vols2, by = 'row.names',all = TRUE)
   vols_t$Row.names = as.numeric(vols_t$Row.names)
@@ -198,13 +198,13 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
     comp = comp_list[i]#i
     
     #generate volatilities for OLS and LASSO estimation
-    df = Estimation_table(jump_ind,vol_names,interval_list,i,yr_pre)
+    df = Estimation_table(vol_names,interval_list,i,yr_pre)
     
     #estimate OLS and LASSO models 
-    ols_full <-model_reg(vol_names,interval_list,df)
-    ols1 <-model_reg(vol_names,interval_list,df)
-    ols2.5 <-model_reg(vol_names,interval_list,df)
-    ols5 <-model_reg(vol_names,interval_list,df)
+    ols_full <-model_reg_full(vol_names,interval_list,df)
+    ols1 <-model_reg(vol_names,interval_list,1,df)
+    ols2.5 <-model_reg(vol_names,interval_list,2,df)
+    ols5 <-model_reg(vol_names,interval_list,3,df)
     las <-model_lasso(vol_names,interval_list,df)
     
     #read in 3month t-bill & closing prices
@@ -286,4 +286,4 @@ sharps=sharps[-1,]
 
 View(sharps)
 
-write.csv(sharps,"C:\\Users\\19084\\My Backup Files\\Data\\sharp_Table_a.csv", row.names = TRUE)
+write.csv(sharps,"C:\\Users\\19084\\My Backup Files\\Data\\sharp_Table_b.csv", row.names = TRUE)
