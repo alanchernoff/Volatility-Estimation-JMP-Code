@@ -2,9 +2,7 @@ library(dplyr)
 library(matrixStats)
 library(glmnet)
 
-setwd("/Users/19084/My Backup Files/Data/MC Reg Data")
-
-jump_ind =c("0","1","2","3")
+jump_ind =c("large jumps","small jumps","large jumps noise","small jumps noise")
 interval_list = c("1min","2.5min","5min")
 vol_names =c("RV","BPV","TPV","MinRV","MedRV","TRV")
 
@@ -56,13 +54,18 @@ Vol_calc <- function (raw){
   vol_df
 } #used in MC_table & MC_table_clean
 
-MC_table<-function(jump_ind,vol_names,interval_list,i){
-  PT_RV=read.csv(file=paste0("T",jump_ind[i]," RV.csv"), header=TRUE, sep=",", row.names=1)
+MC_reg_estimation<-function(jump_ind,vol_names,interval_list,i){
   
+  setwd("/Users/19084/My Backup Files/Data/MC Data")
+
+  #read in pseudo true volatiltiy from larger data set
+  PT_RV=read.csv(file=paste0("MC Data ",jump_ind[i]," RV.csv"), header=TRUE, sep=",", row.names=1)
+  
+  #read in sub-sampled data
   jumpind = jump_ind[i] #i
-  raw1=read.csv(file=paste0("T",jumpind," ",interval_list[1],".csv"), header=TRUE, sep=",", row.names=1)
-  raw2=read.csv(file=paste0("T",jumpind," ",interval_list[2],".csv"), header=TRUE, sep=",", row.names=1)
-  raw3=read.csv(file=paste0("T",jumpind," ",interval_list[3],".csv"), header=TRUE, sep=",", row.names=1)
+  raw1=read.csv(file=paste0("MC Data ",jump_ind[i]," ",interval_list[1],".csv"), header=TRUE, sep=",", row.names=1)
+  raw2=read.csv(file=paste0("MC Data ",jump_ind[i]," ",interval_list[2],".csv"), header=TRUE, sep=",", row.names=1)
+  raw3=read.csv(file=paste0("MC Data ",jump_ind[i]," ",interval_list[3],".csv"), header=TRUE, sep=",", row.names=1)
   
   vols1=Vol_calc(raw1)
   vols2=Vol_calc(raw2)
@@ -151,20 +154,21 @@ model_lasso <-function(vol_names,interval_list,vols){
   best_model  
 }
 
-setwd("/Users/19084/My Backup Files/Data/MC")
-jump_ind_table =c("no jumps","T1 jumps","t2 jumps","no jumps noise","T1 jumps noise","T2 jumps noise") #edit this line
-
 MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   
+  setwd("/Users/19084/My Backup Files/Data/MC Reg Data")
+  
   #generate volatilities for OLS and LASSO estimation
-  df = MC_table(jump_ind,vol_names,interval_list,i)
+  df = MC_reg_estimation(jump_ind,vol_names,interval_list,i)
   
   #estimate OLS and LASSO models 
-  ols_full <-model_reg(vol_names,interval_list,df)
-  ols1 <-model_reg(vol_names,interval_list,df)
-  ols2.5 <-model_reg(vol_names,interval_list,df)
-  ols5 <-model_reg(vol_names,interval_list,df)
+  ols_full <-model_reg_full(vol_names,interval_list,df)
+  ols1 <-model_reg(vol_names,interval_list,1,df)
+  ols2.5 <-model_reg(vol_names,interval_list,2,df)
+  ols5 <-model_reg(vol_names,interval_list,3,df)
   las <-model_lasso(vol_names,interval_list,df)
+  
+  setwd("/Users/19084/My Backup Files/Data/MC Data")
   
   #read in pseudo true volatiltiy from larger data set
   PT_RV=read.csv(file=paste0("MC Data ",jump_ind[i]," RV.csv"), header=TRUE, sep=",", row.names=1)
@@ -227,7 +231,7 @@ for (k in 1:4){
 
   #k = 1
 
-  df=MC_table_clean(jump_ind_table,vol_names,interval_list,k) # edit 
+  df=MC_table_clean(jump_ind,vol_names,interval_list,k) # edit 
 
   RMSE <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)))
   colnames(RMSE) <- colnames(df)[1:ncol(df)-1]
@@ -249,10 +253,8 @@ for (k in 1:4){
   
   RMSE_sub = RMSE_sub*10^6
 
-  RMSE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 3))
+  RMSE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 2))
   colnames(RMSE_table) <- colnames(df)[1:ncol(df)-1]
-  colnames(RMSE_table) < c("Mean","5th and 95th percentiles")
-
 
   for (i in 1:ncol(RMSE_table)){
     RMSE_table[1,i] <- format(round(mean(RMSE_sub[,i]), 4), nsmall = 4)
@@ -260,7 +262,8 @@ for (k in 1:4){
   }
   
   RMSE_table = t(RMSE_table)
-  colnames(RMSE_table) <- c("Mean","5th and 95th percentiles")
+  colnames(RMSE_table) <- c("Mean RMSE","5th and 95th percentiles")
 
-  write.csv(RMSE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",toString(k),".csv"), row.names = TRUE)
-}
+  
+  write.csv(RMSE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",jump_ind[k],".csv"), row.names = TRUE)
+} 
