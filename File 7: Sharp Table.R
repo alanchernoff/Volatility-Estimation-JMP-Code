@@ -175,6 +175,21 @@ sharp_Calc = function(vols,rf3mo,close,sharps,j){
   sharps
 }
 
+sd_ret_Calc = function(vols,rf3mo,close,sdevs,j){
+  for (i in 1:ncol(vols)){
+    movavg5=SMA(vols[,i],5)
+    movavg20=SMA(vols[,i],20)
+    signal = ifelse(movavg5 < movavg20, 1, 0)
+    returns=lagpad(ROC(close))*signal
+    returns=na.omit(returns-rf3mo)
+    
+    sd_str = toString(format(round(sd(returns), 4), nsmall = 4))
+    sd_str2=paste0("'(",sd_str,")")
+    sdevs[j,i+1] <- c(sd_str2)
+  }
+  sdevs
+}
+
 convert_table <-function(sharps,vol_names,interval_list){
   vol_names1 <- lapply(vol_names, function(x) paste(x,interval_list[1], sep="_"))
   vol_names2 <- lapply(vol_names, function(x) paste(x,interval_list[2], sep="_"))
@@ -192,6 +207,8 @@ convert_table <-function(sharps,vol_names,interval_list){
 sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
   
   sharps = data.frame(comp_list)
+  sdevs = data.frame(comp_list)
+  
   vol_cols = ""
   for(i in 1:length(comp_list)){
     
@@ -208,7 +225,7 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
     las <-model_lasso(vol_names,interval_list,df)
     
     #read in 3month t-bill & closing prices
-    rf3mo = read.csv(file=paste("3mo",yr,"a.csv",sep=""),header=FALSE)
+    rf3mo = read.csv(file=paste("3mo",yr,".csv",sep=""),header=FALSE)
     rf3mo=rf3mo[,1]
     rf3mo=rf3mo/360
     close=read.csv(file=paste(comp,"close",yr,"e.csv",sep=""),header=FALSE) #e
@@ -264,13 +281,21 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
     vol_cols = colnames(vols)
     
     sharps=sharp_Calc(vols,rf3mo,close,sharps,i)
+    sdevs=sd_ret_Calc(vols,rf3mo,close,sdevs,i)
   }
   sharp_col_names = do.call(c, list("comp",vol_cols))
   colnames(sharps)<-sharp_col_names
+  #colnames(sdevs)<-sharp_colnames
   
+  sharps_full=data.frame(comp_list)
+  for (i in 1:(ncol(sharps)-1)){
+    name_str=colnames(sharps[i+1])
+    sharps_full[name_str] <- c(sharps[,i+1])
+    sharps_full[paste0(name_str,"_stdev")] <- c(sdevs[,i+1])
+  }
   
   #sharps = convert_table(sharps,vol_names,interval_list)
-  sharps
+  sharps_full
   
 } 
   
@@ -278,12 +303,12 @@ comp_list = c("HD","IBM","aapl","msft")
 yr="2017-2019"
 yr_pre="2012-2016"
 
-sharps = sharp_table(comp_list,vol_names,interval_list,yr,yr_pre) #<-run this
+sharps_full = sharp_table(comp_list,vol_names,interval_list,yr,yr_pre) #<-run this
 
-sharps <- t(sharps)
-colnames(sharps) <-comp_list
-sharps=sharps[-1,]
+sharps_full <- t(sharps_full)
+colnames(sharps_full) <-comp_list
+sharps_full=sharps_full[-1,]
 
-View(sharps)
+View(sharps_full)
 
-write.csv(sharps,"C:\\Users\\19084\\My Backup Files\\Data\\sharp_Table_b.csv", row.names = TRUE)
+write.csv(sharps_full,"C:\\Users\\19084\\My Backup Files\\Data\\sharp_Table_c.csv", row.names = TRUE)
