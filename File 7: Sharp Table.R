@@ -183,7 +183,7 @@ sd_ret_Calc = function(vols,rf3mo,close,sdevs,j){
     returns=lagpad(ROC(close))*signal
     returns=na.omit(returns-rf3mo)
     
-    sd_str = toString(format(round(sd(returns), 3), nsmall = 4))
+    sd_str = toString(format(round(sd(returns), 3), nsmall = 3))
     sd_str2=paste0("'(",sd_str,")")
     sdevs[j,i+1] <- c(sd_str2)
   }
