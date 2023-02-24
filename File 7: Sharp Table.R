@@ -183,7 +183,7 @@ sd_ret_Calc = function(vols,rf3mo,close,sdevs,j){
     returns=lagpad(ROC(close))*signal
     returns=na.omit(returns-rf3mo)
     
-    sd_str = toString(format(round(sd(returns), 4), nsmall = 4))
+    sd_str = toString(format(round(sd(returns), 3), nsmall = 4))
     sd_str2=paste0("'(",sd_str,")")
     sdevs[j,i+1] <- c(sd_str2)
   }
@@ -299,7 +299,7 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
   
 } 
   
-comp_list = c("HD","IBM","aapl","msft") 
+comp_list = c("IBM","AAPL","MSFT","HD") 
 yr="2017-2019"
 yr_pre="2012-2016"
 
