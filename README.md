@@ -1,7 +1,7 @@
 # Volatlity Estimation
 
 File 1: Data Cleaning for 1 second stock ticker data
-<br/> Filw 2: Calculates integrated volatility using 1 second interval
+<br/> File 2: Calculates integrated volatility using 1 second interval
 <br/> &emsp; converts 1 second ticker data to 1 min, 5 min, and 2.5min intervals
 <br/> File 3: Performs ASJ Jump tests from cleaned data and converts to a table
 <br/> File 4: Simulates the Monte Carlo data for modelling
