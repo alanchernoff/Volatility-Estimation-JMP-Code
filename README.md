@@ -13,3 +13,5 @@ File 1: Data Cleaning for 1 second stock ticker data
 <br/>  &emsp; calculates the Sharp ratio of using a 5-20 MA cross (signalled by volatility) trading strategy
 <br/> File 8: Creates plots of Stock Closing Price vs Estimated Volatility
 <br/> File 9: Creates plots of ASJ test statistics
+
+<br/> Stock price .csv files can be found here: https://drive.google.com/drive/folders/1vOKSZNvjpmWDQWrO_utr_f618yZMIuU7?usp=drive_link
