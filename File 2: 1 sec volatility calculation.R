@@ -1,28 +1,70 @@
-setwd("/Users/19084/My Backup Files/Data/Data")
+setwd("/Users/acher/JMP/")
+library(dplyr)
+comp_list = c("AAPL","AXP","BA","CAT","CSCO", "CVX","DIS","HD","IBM",
+              "INTC","JNJ","JPM","KO","MCD","MMM","MRK","MSFT","NKE",
+              "PFE","PG","UNH","UTX","VZ","WMT","XOM") #c("HD","IBM","AAPL","MSFT")
+start_date ="2012-01-03" #"2017-01-03" 
+end_date="2016-12-30" #"2019-12-31" 
+years = "2012-2016" "2017-2019" 
 
-comp_list = c("HD","IBM","aapl","msft") 
-yr="2017-2019"
-yr_pre="2012-2016"
-
-Vol_calc <- function (raw){
-  mat=data.matrix(raw, rownames.force = NA) 
-  mat=t(mat)
-  #mat=log(mat)
-  #calculate RV
-  dif=diff(mat)
-  RV=colSums((dif)^2)
+for (i in 1:length(comp_list)){
+  ticker = comp_list[i]
+  df=read.csv(paste("/Users/acher/JMP/",ticker,'_1sec_Clean.csv',sep=""),header=TRUE)
+  start=which(df$DATE==start_date)
+  stop=which(df$DATE==end_date)
+  df=df[start:stop,]
+  datedf=df[,1]
   
-  vol_df=data.frame(RV)
-  #vol_df=as.data.frame(vol_df)
+  #export 1sec data
+  write.table(df,paste("C:\\Users\\acher\\JMP\\Data\\"
+                       ,ticker,"1sec",years,"e.csv",sep=""),sep=",", row.names = FALSE,col.names = FALSE,)
+  #export close
+  close=df[,ncol(df)]
+  write.table(close,paste("C:\\Users\\acher\\JMP\\Data\\"
+                          ,ticker,"close",years,"e.csv",sep=""),sep=",", row.names = FALSE,col.names = FALSE,)
   
-  vol_df
-} #used in MC_table & MC_table_clean
-
-for(i in 1:length(comp_list)){
-  comp=comp_list[i]
-  raw1_pre=read.csv(file=paste0(comp,"1sec",yr_pre,"e.csv"), row.names = 1, header=FALSE, sep=",")
   
-  vols1=Vol_calc(log(raw1_pre))
-
-  write.csv(vols1,file=paste0("C:\\Users\\19084\\My Backup Files\\Data\\Data\\pre",comp,"RV.csv"), row.names = TRUE)
+  #1min
+  minutedatadf=df[,grepl("00$",names(df))]
+  write.table(minutedatadf,paste("C:\\Users\\acher\\JMP\\Data\\"
+                                 ,ticker,"1min",years,"e.csv",sep=""),sep=",", row.names = FALSE,col.names = FALSE,)
+  
+  #5min
+  df5min=minutedatadf[,!grepl("1.00$",names(minutedatadf))]
+  df5min=df5min[,!grepl("2.00$",names(df5min))]
+  df5min=df5min[,!grepl("3.00$",names(df5min))]
+  df5min=df5min[,!grepl("4.00$",names(df5min))]
+  df5min=df5min[,!grepl("6.00$",names(df5min))]
+  df5min=df5min[,!grepl("7.00$",names(df5min))]
+  df5min=df5min[,!grepl("8.00$",names(df5min))]
+  df5min=df5min[,!grepl("9.00$",names(df5min))]
+  #newdf=bind_cols(datedf,df5min)
+  write.table(df5min,paste("C:\\Users\\acher\\JMP\\Data\\"
+                           ,ticker,"5min",years,"e.csv",sep=""),sep=",", row.names = FALSE,col.names = FALSE,)
+  
+  #2.5min
+  tensecdatadf=df[,grepl("0$",names(df))]
+  df2halfmin=tensecdatadf[,!grepl("10$",names(tensecdatadf))]
+  df2halfmin=df2halfmin[,!grepl("20$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("40$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("50$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("1.00$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("2.00$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("3.00$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("4.00$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("6.00$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("7.00$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("8.00$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("9.00$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("0.30$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("1.30$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("3.30$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("4.30$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("5.30$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("6.30$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("8.30$",names(df2halfmin))]
+  df2halfmin=df2halfmin[,!grepl("9.30$",names(df2halfmin))]
+  write.table(df2halfmin,paste("C:\\Users\\acher\\JMP\\Data\\"
+                               ,ticker,"2.5min",years,"e.csv",sep=""),sep=",", row.names = FALSE,col.names = FALSE,)
+  
 }
