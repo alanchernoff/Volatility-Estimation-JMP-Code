@@ -2,7 +2,7 @@ setwd("/Users/acher/JMP/")
 library(dplyr)
 comp_list = c("AAPL","AXP","BA","CAT","CSCO", "CVX","DIS","HD","IBM",
               "INTC","JNJ","JPM","KO","MCD","MMM","MRK","MSFT","NKE",
-              "PFE","PG","UNH","UTX","VZ","WMT","XOM") #c("HD","IBM","AAPL","MSFT")
+              "PFE","UNH","UTX","VZ","WMT","XOM") #c("HD","IBM","AAPL","MSFT")
 start_date ="2012-01-03" #"2017-01-03" 
 end_date="2016-12-30" #"2019-12-31" 
 years = "2012-2016" "2017-2019" 
