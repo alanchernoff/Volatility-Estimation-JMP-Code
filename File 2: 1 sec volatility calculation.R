@@ -1,4 +1,4 @@
-setwd("/Users/acher/JMP/")
+setwd("/Users/acher/JMP/data")
 comp_list = c("AAPL","AXP","BA","CAT","CSCO", "CVX","DIS","HD","IBM",
               "INTC","JNJ","JPM","KO","MCD","MMM","MRK","MSFT","NKE",
               "PFE","UNH","UTX","VZ","WMT","XOM") 
@@ -23,4 +23,4 @@ for(i in 1:length(comp_list)){
   raw1_pre=read.csv(file=paste0(comp,"1sec",yr_pre,"e.csv"), row.names = 1, header=FALSE, sep=",")
 
   vols1=Vol_calc(log(raw1_pre))
-  write.csv(vols1,file=paste0("C:\\Users\\19084\\My Backup Files\\Data\\Data\\pre",comp,"RV.csv"), row.names = TRUE)
+  write.csv(vols1,file=paste0("C:\\Users\\acher\\JMP\\data\\pre",comp,"RV.csv"), row.names = TRUE)
