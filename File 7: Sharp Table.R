@@ -5,23 +5,20 @@ library(tidyverse)
 library(matrixStats)
 library(glmnet)
 
-Vol_calc<- function (raw){
-  #Vol_calc <- function (df,interval,yr){
-  #raw=read.csv(file=paste0(df,interval,yr,"e.csv"), header=FALSE, sep=",")
-  mat=data.matrix(raw, rownames.force = NA)  
+Vol_calc <- function (raw){
+  mat=data.matrix(raw, rownames.force = NA) 
   mat=t(mat)
-  #mat=log(mat)
   #calculate RV
   dif=diff(mat)
   RV=colSums((dif)^2)
   #calculate BPV
-  dif1=dif[1:(nrow(mat)-2),1:ncol(mat)] 
-  dif2=dif[2:(nrow(mat)-1),1:ncol(mat)] 
+  dif1=dif[1:(nrow(mat)-2),] 
+  dif2=dif[2:(nrow(mat)-1),] 
   BPV=(sqrt(2)/sqrt(pi))^(-2)*colSums(abs(dif1)*abs(dif2))
   #calculate TPV
-  dif11=dif[1:(nrow(mat)-3), 1:ncol(mat)] 
-  dif22=dif[2:(nrow(mat)-2), 1:ncol(mat)] 
-  dif33=dif[3:(nrow(mat)-1), 1:ncol(mat)] 
+  dif11=dif[1:(nrow(mat)-3),] 
+  dif22=dif[2:(nrow(mat)-2),] 
+  dif33=dif[3:(nrow(mat)-1),] 
   cons=(((2^(1/3))*gamma(5/6))/gamma(1/2))^(-3) 
   TPV=cons*colSums((abs(dif11)^(2/3))*(abs(dif22)^(2/3))*(abs(dif33)^(2/3)))
   #calculate MinRV
@@ -41,19 +38,10 @@ Vol_calc<- function (raw){
   trun=matrix(0, (nrow(mat)-1), ncol(mat))
   for (j in 1: ncol(mat)){for (i in 1: (nrow(mat)-1)){if (abs(dif[i,j]) <= alph_fin[j]*delta^omega){trun[i,j]=abs((dif[i,j]))^2} else {trun[i,j]=0}}} 
   TRV=colSums(trun) 
-  vol_all = bind_cols(RV,BPV,TPV,MinRV,MedRV,TRV)
-  #mean_vol=rowMeans(vol_all)
-  #vol_j = bind_cols(RV,BPV,TPV,MinRV,MedRV,TRV)
-  #mean_jvol=rowMeans(vol_j)
-  #result = data.frame(RV = RV,BPV=BPV,TPV=TPV,MinRV=MinRV,MedRV=MedRV,TRV=TRV,mean_vol=mean_vol,mean_jvol=mean_jvol)
-  #result = data.frame(RV = RV,BPV=BPV,TPV=TPV,MinRV=MinRV,MedRV=MedRV,TRV=TRV)
-  #result
-  #vol_all
+  #combine columns
   vol_df=data.frame(RV,BPV,TPV,MinRV,MedRV,TRV)
-  #vol_df=as.data.frame(vol_df)
-  
   vol_df
-} #used in MC_table & Sharp_table
+} #used in MC_table & MC_table_clean
 
 ### Generate OLS & LASSO Models
 
