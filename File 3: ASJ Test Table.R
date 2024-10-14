@@ -1,4 +1,4 @@
-setwd("/Users/19084/My Backup Files/Data/Data")
+setwd("/Users/acher/JMP/data")
 
 #Jump Calculation
 jump_calc <- function (df,interval,yr){
