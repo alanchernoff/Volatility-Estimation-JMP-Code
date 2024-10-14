@@ -63,4 +63,4 @@ for (i in 1:ncol(df)){
 }
 
 #Export the Table
-write.csv(df,"C:\\Users\\19084\\My Backup Files\\Data\\ASJ_table.csv", row.names = TRUE)
+write.csv(df,"C:\\Users\\acher\\JMP\\Data\\ASJ_table.csv", row.names = TRUE)
