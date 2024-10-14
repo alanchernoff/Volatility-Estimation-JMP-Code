@@ -4,7 +4,7 @@ library(glmnet)
 
 jump_ind =c("large jumps","small jumps","large jumps noise","small jumps noise")
 interval_list = c("1min","2.5min","5min")
-vol_names =c("RV","BPV","TPV","MinRV","MedRV","TRV")
+vol_names =c("RV","BPV","TPV","TRV","RK_TK","RK_B","RK_2O","RK_E","RK_C","TSRV","MinRV","MedRV")
 
 Vol_calc <- function (raw){
   mat=data.matrix(raw, rownames.force = NA) 
@@ -39,8 +39,39 @@ Vol_calc <- function (raw){
   trun=matrix(0, (nrow(mat)-1), ncol(mat))
   for (j in 1: ncol(mat)){for (i in 1: (nrow(mat)-1)){if (abs(dif[i,j]) <= alph_fin[j]*delta^omega){trun[i,j]=abs((dif[i,j]))^2} else {trun[i,j]=0}}} 
   TRV=colSums(trun) 
+  #calculate RK
+  kfunTH <- function(x) (sin((((1 - x)^2) * pi) / 2))^2
+  kfunB <- function(x) (1-x)
+  kfun2O <- function(x) (1-2*x+x^2)
+  kfunE <- function(x) (1-x^2)
+  kfunC <- function(x) (1-3*x^2+2*x^2)
+  H=3
+  gam_1 <- colSums(dif[1:(nrow(mat)-2),] * dif[2:(nrow(mat)-1),])
+  gam_2 <- colSums(dif[1:(nrow(mat)-3),] * dif[3:(nrow(mat)-1),])
+  gam_3 <- colSums(dif[1:(nrow(mat)-4),] * dif[4:(nrow(mat)-1),])
+  gam <- cbind(gam_1, gam_2, gam_3)
+  j_values <- 1:3 
+  RK_TK = RV + colSums(t(matrix(kfunTH((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  RK_B = RV + colSums(t(matrix(kfunB((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  RK_2O = RV + colSums(t(matrix(kfun2O((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  RK_E = RV + colSums(t(matrix(kfunE((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  RK_C = RV + colSums(t(matrix(kfunC((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  #TSRV
+  n <- 5
+  K <- (nrow(mat)-1)/(n+1)
+  sub_samp<- array(, dim = c(n, ncol(mat), K))
+  for (j in 1:K) {for (i in 1:n) {
+    sub_samp[i,,j] <- (mat[ i * K + j,] - mat[ (i - 1) * K + j,])^2
+  }  }
+  sub_vols <- matrix(,K, ncol(mat))
+  
+  for (j in 1:ncol(mat)) {for (i in 1:K) {
+      sub_vols[i, j] <- sum(sub_samp[1:n, j, i])
+    }  }
+  avg_vols <- 1/K * colSums(sub_vols)
+  TSRV = (1-(n-K+1)/(K*n))^(-1)*(avg_vols - (n-K+1)/(K*n) * RV)
   #combine columns
-  vol_df=data.frame(RV,BPV,TPV,MinRV,MedRV,TRV)
+  vol_df=data.frame(RV,BPV,TPV,TRV,RK_TK,RK_B,RK_2O,RK_E,RK_C,TSRV,MinRV,MedRV)
   vol_df
 } #used in MC_table & MC_table_clean
 
