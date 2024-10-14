@@ -38,7 +38,9 @@ sum(jumpday/length(jumpday))
 }
 
 #Identify Companies, Sample Intervals, and Sample Years
-comp_list = c("HD","IBM","aapl","msft") 
+comp_list = c("AAPL","AXP","BA","CAT","CSCO", "CVX","DIS","HD","IBM",
+              "INTC","JNJ","JPM","KO","MCD","MMM","MRK","MSFT","NKE",
+              "PFE","UNH","UTX","VZ","WMT","XOM") 
 interval_list = c("1min","2.5min","5min")
 yr= c("2012-2016","2017-2019","2012-2019")
 
