@@ -1,6 +1,7 @@
 library(dplyr)
 library(matrixStats)
 library(glmnet)
+setwd("C:/Users/acher/JMP/MC Data/")
 
 jump_ind =c("large jumps","small jumps","large jumps noise","small jumps noise")
 interval_list = c("1min","2.5min","5min")
@@ -66,8 +67,8 @@ Vol_calc <- function (raw){
   sub_vols <- matrix(,K, ncol(mat))
   
   for (j in 1:ncol(mat)) {for (i in 1:K) {
-      sub_vols[i, j] <- sum(sub_samp[1:n, j, i])
-    }  }
+    sub_vols[i, j] <- sum(sub_samp[1:n, j, i])
+  }  }
   avg_vols <- 1/K * colSums(sub_vols)
   TSRV = (1-(n-K+1)/(K*n))^(-1)*(avg_vols - (n-K+1)/(K*n) * RV)
   #combine columns
@@ -77,8 +78,6 @@ Vol_calc <- function (raw){
 
 MC_reg_estimation<-function(jump_ind,vol_names,interval_list,i){
   
-  setwd("/Users/19084/My Backup Files/Data/MC Data")
-
   #read in pseudo true volatiltiy from larger data set
   PT_RV=read.csv(file=paste0("MC Data ",jump_ind[i]," RV.csv"), header=TRUE, sep=",", row.names=1)
   
@@ -177,8 +176,6 @@ model_lasso <-function(vol_names,interval_list,vols){
 
 MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   
-  setwd("/Users/19084/My Backup Files/Data/MC Reg Data")
-  
   #generate volatilities for OLS and LASSO estimation
   df = MC_reg_estimation(jump_ind,vol_names,interval_list,i)
   
@@ -188,8 +185,6 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   ols2.5 <-model_reg(vol_names,interval_list,2,df)
   ols5 <-model_reg(vol_names,interval_list,3,df)
   las <-model_lasso(vol_names,interval_list,df)
-  
-  setwd("/Users/19084/My Backup Files/Data/MC Data")
   
   #read in pseudo true volatiltiy from larger data set
   PT_RV=read.csv(file=paste0("MC Data ",jump_ind[i]," RV.csv"), header=TRUE, sep=",", row.names=1)
@@ -226,21 +221,21 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   colnames(vols)<-vol_names_e
   
   #calculaute mean volatilities
-  vols$MeanVol_1min <-rowMeans(as.matrix(vols[,1:6]))
-  vols$MeanVol_2.5min <-rowMeans(as.matrix(vols[,7:12]))
-  vols$MeanVol_5min <-rowMeans(as.matrix(vols[,13:18]))
-  vols$MeanVol_all <-rowMeans(as.matrix(vols[,1:18]))
-  vols$MeanJVol_1min <-rowMeans(as.matrix(vols[,c(2,3,6)]))
-  vols$MeanJVol_2.5min <-rowMeans(as.matrix(vols[,c(8,9,12)]))
-  vols$MeanJVol_5min <-rowMeans(as.matrix(vols[,c(14,15,18)]))
-  vols$MeanJVol_all <-rowMeans(as.matrix(vols[,c(2,3,6,8,9,12,14,15,18)]))
+  vols$MeanVol_1min <-rowMeans(as.matrix(vols[,1:12]))
+  vols$MeanVol_2.5min <-rowMeans(as.matrix(vols[,13:24]))
+  vols$MeanVol_5min <-rowMeans(as.matrix(vols[,25:36]))
+  vols$MeanVol_all <-rowMeans(as.matrix(vols[,1:36]))
+  vols$MeanJVol_1min <-rowMeans(as.matrix(vols[,c(2,3,4,11,12)]))
+  vols$MeanJVol_2.5min <-rowMeans(as.matrix(vols[,c(14,15,16,23,24)]))
+  vols$MeanJVol_5min <-rowMeans(as.matrix(vols[,c(26,27,28,35,36)]))
+  vols$MeanJVol_all <-rowMeans(as.matrix(vols[,c(2,3,4,11,12,14,15,16,23,24,26,27,28,35,36)]))
   
   #calculate OLS and LASSO volatilities
   vols$OLS_Vol_full <- predict(ols_full,vols)
   vols$OLS_Vol_1 <- predict(ols1,vols)
   vols$OLS_Vol_2.5 <- predict(ols2.5,vols)
   vols$OLS_Vol_5 <- predict(ols5,vols)
-  vols$LASSO_Vol <- predict(las,as.matrix(vols[,1:18]))
+  vols$LASSO_Vol <- predict(las,as.matrix(vols[,1:36]))
   
   vols['RV'] = PT_RV
   
@@ -249,34 +244,36 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
 } 
 
 for (k in 1:4){
-
+  
   #k = 1
-
+  
   df=MC_table_clean(jump_ind,vol_names,interval_list,k) # edit 
-
+  
   RMSE <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)))
   colnames(RMSE) <- colnames(df)[1:ncol(df)-1]
-
-
+  
+  
   for(i in 1:ncol(RMSE)){
-  RMSE[,i]=(df[,i]-df[,ncol(df)])^2
-}
-
+    RMSE[,i]=(df[,i]-df[,ncol(df)])^2
+  }
+  
   n=100
   RMSE_sub <- data.frame(matrix(ncol = ncol(df)-1, nrow = nrow(df)/n))
   colnames(RMSE_sub) <- colnames(df)[1:ncol(df)-1]
-
+  
   for (j in 1:n){
-  for (i in 1:ncol(RMSE_sub)){
-    RMSE_sub[j,i] = sqrt(mean(RMSE[(1+(j-1)*n):(j*n),i]))
-  }
+    for (i in 1:ncol(RMSE_sub)){
+      RMSE_sub[j,i] = sqrt(mean(RMSE[(1+(j-1)*n):(j*n),i]))
+    }
   }
   
   RMSE_sub = RMSE_sub*10^6
-
+  RMSE_sub <- lapply(RMSE_sub, function(x) sprintf("%.2f", x))
+  
+  
   RMSE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 2))
   colnames(RMSE_table) <- colnames(df)[1:ncol(df)-1]
-
+  
   for (i in 1:ncol(RMSE_table)){
     RMSE_table[1,i] <- format(round(mean(RMSE_sub[,i]), 4), nsmall = 4)
     RMSE_table[2,i] <- toString(format(round(quantile(RMSE_sub[,i], c(.05,.95)), 4), nsmall = 4))
@@ -284,7 +281,6 @@ for (k in 1:4){
   
   RMSE_table = t(RMSE_table)
   colnames(RMSE_table) <- c("Mean RMSE","5th and 95th percentiles")
-
   
-  write.csv(RMSE_table,paste0("C:\\Users\\19084\\My Backup Files\\Data\\RMSE_table_",jump_ind[k],".csv"), row.names = TRUE)
+  write.csv(RMSE_table,paste0("C:\\Users\\acher\\JMP\\RMSE_table_",jump_ind[k],".csv"), row.names = TRUE)
 } 
