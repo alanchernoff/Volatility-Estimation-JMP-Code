@@ -72,15 +72,14 @@ Vol_calc <- function (raw){
   #combine columns
   vol_df=data.frame(RV,BPV,TPV,TRV,RK_TK,RK_B,RK_2O,RK_E,RK_C,TSRV,MinRV,MedRV)
   vol_df
-} #used in MC_table & MC_table_clean
+} #used in MC_table 
 
 ### Generate OLS & LASSO Models
 
 setwd("/Users/19084/My Backup Files/Data/Data")
 
 interval_list = c("1min","2.5min","5min")
-vol_names =c("RV","BPV","TPV","MinRV","MedRV","TRV")
-
+vol_names =c("RV","BPV","TPV","TRV","RK_TK","RK_B","RK_2O","RK_E","RK_C","TSRV","MinRV","MedRV")
 
 Estimation_table<-function(vol_names,interval_list,i,yr_pre){
   comp = comp_list[i]#i
@@ -281,21 +280,21 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
     colnames(vols)<-vol_names_e
     
     #calculate mean volatiltiies
-    vols$MeanVol_1min <-rowMeans(as.matrix(vols[,1:6]))
-    vols$MeanVol_2.5min <-rowMeans(as.matrix(vols[,7:12]))
-    vols$MeanVol_5min <-rowMeans(as.matrix(vols[,13:18]))
-    vols$MeanVol_all <-rowMeans(as.matrix(vols[,1:18]))
-    vols$MeanJVol_1min <-rowMeans(as.matrix(vols[,c(2,3,6)]))
-    vols$MeanJVol_2.5min <-rowMeans(as.matrix(vols[,c(8,9,12)]))
-    vols$MeanJVol_5min <-rowMeans(as.matrix(vols[,c(14,15,18)]))
-    vols$MeanJVol_all <-rowMeans(as.matrix(vols[,c(2,3,6,8,9,12,14,15,18)]))
-    
+    vols$MeanVol_1min <-rowMeans(as.matrix(vols[,1:12]))
+    vols$MeanVol_2.5min <-rowMeans(as.matrix(vols[,13:24]))
+    vols$MeanVol_5min <-rowMeans(as.matrix(vols[,25:36]))
+    vols$MeanVol_all <-rowMeans(as.matrix(vols[,1:36]))
+    vols$MeanJVol_1min <-rowMeans(as.matrix(vols[,c(2,3,4,11,12)]))
+    vols$MeanJVol_2.5min <-rowMeans(as.matrix(vols[,c(14,15,16,23,24)]))
+    vols$MeanJVol_5min <-rowMeans(as.matrix(vols[,c(26,27,28,35,36)]))
+    vols$MeanJVol_all <-rowMeans(as.matrix(vols[,c(2,3,4,11,12,14,15,16,23,24,26,27,28,35,36)]))
+  
     #calculate OLS and LASSO volatilities
     vols$OLS_Vol_full <- predict(ols_full,vols)
     vols$OLS_Vol_1 <- predict(ols1,vols)
     vols$OLS_Vol_2.5 <- predict(ols2.5,vols)
     vols$OLS_Vol_5 <- predict(ols5,vols)
-    vols$LASSO_Vol <- predict(las,as.matrix(vols[,1:18]))
+    vols$LASSO_Vol <- predict(las,as.matrix(vols[,1:36]))
     
     vol_cols = colnames(vols)
     
