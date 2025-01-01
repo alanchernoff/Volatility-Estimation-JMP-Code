@@ -111,8 +111,6 @@ MC_reg_estimation<-function(jump_ind,vol_names,interval_list,i){
   
   vols['RV'] = PT_RV
   
-  
-  
   vols
   
 }
@@ -123,8 +121,7 @@ model_reg_full <- function(vol_names,interval_list,vols){
   vol_names3 <- lapply(vol_names, function(x) paste(x,interval_list[3], sep="_"))
   vol_names_e = do.call(c, list(vol_names1,vol_names2,vol_names3))
   form = "RV~0"
-  len = length(vol_names_e)
-  for (i in 1:len){
+  for (volatility in vol_names_e) {
     form =paste0(form,"+",vol_names_e[i])
   }
   model1 <-lm(eval(parse(text=form)),data=vols)
@@ -133,12 +130,11 @@ model_reg_full <- function(vol_names,interval_list,vols){
 }
 
 model_reg <- function(vol_names,interval_list,i,vols){
-  vol_names <- lapply(vol_names, function(x) paste(x,interval_list[i], sep="_"))
-  vol_names_e = do.call(c, list(vol_names))
+  vol_names_a <- lapply(vol_names, function(x) paste(x,interval_list[i], sep="_"))
+  vol_names_e = do.call(c, list(vol_names_a))
   form = "RV~0"
-  len = length(vol_names_e)
-  for (i in 1:len){
-    form =paste0(form,"+",vol_names_e[i])
+  for (volatility in vol_names_e) {
+    form =paste0(form,"+",volatility)
   }
   model1 <-lm(eval(parse(text=form)),data=vols)
   model1
@@ -268,15 +264,13 @@ for (k in 1:4){
   }
   
   RMSE_sub = RMSE_sub*10^6
-  RMSE_sub <- lapply(RMSE_sub, function(x) sprintf("%.2f", x))
-  
   
   RMSE_table <- data.frame(matrix(ncol = ncol(df)-1, nrow = 2))
   colnames(RMSE_table) <- colnames(df)[1:ncol(df)-1]
   
   for (i in 1:ncol(RMSE_table)){
-    RMSE_table[1,i] <- format(round(mean(RMSE_sub[,i]), 4), nsmall = 4)
-    RMSE_table[2,i] <- toString(format(round(quantile(RMSE_sub[,i], c(.05,.95)), 4), nsmall = 4))
+    RMSE_table[1,i] <- format(round(mean(RMSE_sub[,i]), 2), nsmall = 2)
+    RMSE_table[2,i] <- toString(format(round(quantile(RMSE_sub[,i], c(.05,.95)), 2), nsmall = 2))
   }
   
   RMSE_table = t(RMSE_table)
