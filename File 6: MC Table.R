@@ -239,7 +239,7 @@ MC_table_clean<-function(jump_ind,vol_names,interval_list,i){
   
 } 
 
-for (k in 1:4){
+for (k in 2:4){
   
   #k = 1
   
