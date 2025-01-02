@@ -310,7 +310,9 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
   
 } 
   
-comp_list = c("IBM","AAPL","MSFT","HD") 
+comp_list = c("AAPL","AXP","BA","CAT","CSCO", "CVX","DIS","HD","IBM",
+              "INTC","JNJ","JPM","KO","MCD","MMM","MRK","MSFT","NKE",
+              "PFE","UNH","UTX","VZ","WMT","XOM") 
 yr="2017-2019"
 yr_pre="2012-2016"
 
@@ -322,4 +324,4 @@ sharps_full=sharps_full[-1,]
 
 View(sharps_full)
 
-write.csv(sharps_full,"C:\\Users\\19084\\My Backup Files\\Data\\sharp_Table_c.csv", row.names = TRUE)
+write.csv(sharps_full,"C:\\Users\\acher\\JMP\\sharp_Table_c.csv", row.names = TRUE)
