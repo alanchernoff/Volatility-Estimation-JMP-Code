@@ -1,4 +1,4 @@
-setwd("/Users/19084/My Backup Files/Data/Data") #double data folder
+setwd("C:/Users/acher/JMP/MC Data/")
 library(dplyr)
 library(TTR)
 library(tidyverse)
@@ -76,13 +76,11 @@ Vol_calc <- function (raw){
 
 ### Generate OLS & LASSO Models
 
-setwd("/Users/19084/My Backup Files/Data/Data")
-
 interval_list = c("1min","2.5min","5min")
 vol_names =c("RV","BPV","TPV","TRV","RK_TK","RK_B","RK_2O","RK_E","RK_C","TSRV","MinRV","MedRV")
 
 Estimation_table<-function(vol_names,interval_list,i,yr_pre){
-  comp = comp_list[i]#i
+  comp = comp_list[i]
   PT_RV=read.csv(file=paste0("pre",comp,"RV.csv"), header=TRUE, sep=",", row.names=1)
   raw1_pre=read.csv(file=paste0(comp,interval_list[1],yr_pre,"e.csv"), header=FALSE, sep=",")
   raw2_pre=read.csv(file=paste0(comp,interval_list[2],yr_pre,"e.csv"), header=FALSE, sep=",")
@@ -176,9 +174,6 @@ model_lasso <-function(vol_names,interval_list,vols){
 
 ### Generate Stock Price Data Models
 
-setwd("/Users/19084/My Backup Files/Data/Data")
-
-
 lagpad <- function(x) { return (c(x[(1+1) : length(x)], rep(NA, 1)))}
 
 sharp_Calc = function(vols,rf3mo,close,sharps,j){
@@ -216,9 +211,7 @@ convert_table <-function(sharps,vol_names,interval_list){
   vol_names = as.character(vol_names)
   names(vol_names) <- paste0("V",2:(length(vol_names)+1))
   sharps <- rename_with(.data = sharps, .cols = starts_with("V"), .fn = function(x){vol_names[x]})
-  
-  
-  
+                       
   sharps
 }
 
