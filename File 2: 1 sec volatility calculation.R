@@ -24,3 +24,4 @@ for(i in 1:length(comp_list)){
 
   vols1=Vol_calc(log(raw1_pre))
   write.csv(vols1,file=paste0("C:\\Users\\acher\\JMP\\data\\pre",comp,"RV.csv"), row.names = TRUE)
+}
