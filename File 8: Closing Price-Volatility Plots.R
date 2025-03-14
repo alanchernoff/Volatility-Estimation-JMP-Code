@@ -1,4 +1,4 @@
-setwd("/Users/19084/My Backup Files/Data/Data") #double data folder
+setwd("C:/Users/acher/JMP/data/")
 library(dplyr)
 library(TTR)
 library(tidyverse)
@@ -60,7 +60,39 @@ Vol_calc<- function (raw){
   trun=matrix(0, (nrow(mat)-1), ncol(mat))
   for (j in 1: ncol(mat)){for (i in 1: (nrow(mat)-1)){if (abs(dif[i,j]) <= alph_fin[j]*delta^omega){trun[i,j]=abs((dif[i,j]))^2} else {trun[i,j]=0}}} 
   TRV=colSums(trun) 
-  vol_all = bind_cols(RV,BPV,TPV,MinRV,MedRV,TRV)
+  #calculate RK
+  kfunTH <- function(x) (sin((((1 - x)^2) * pi) / 2))^2
+  kfunB <- function(x) (1-x)
+  kfun2O <- function(x) (1-2*x+x^2)
+  kfunE <- function(x) (1-x^2)
+  kfunC <- function(x) (1-3*x^2+2*x^2)
+  H=3
+  gam_1 <- colSums(dif[1:(nrow(mat)-2),] * dif[2:(nrow(mat)-1),])
+  gam_2 <- colSums(dif[1:(nrow(mat)-3),] * dif[3:(nrow(mat)-1),])
+  gam_3 <- colSums(dif[1:(nrow(mat)-4),] * dif[4:(nrow(mat)-1),])
+  gam <- cbind(gam_1, gam_2, gam_3)
+  j_values <- 1:3 
+  RK_TK = RV + colSums(t(matrix(kfunTH((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  RK_B = RV + colSums(t(matrix(kfunB((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  RK_2O = RV + colSums(t(matrix(kfun2O((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  RK_E = RV + colSums(t(matrix(kfunE((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  RK_C = RV + colSums(t(matrix(kfunC((j_values -1)/H), nrow = ncol(mat), ncol = 3, byrow = TRUE) * (2 * gam[,j_values])))
+  #TSRV
+  n <- 5
+  K <- (nrow(mat)-1)/(n+1)
+  sub_samp<- array(, dim = c(n, ncol(mat), K))
+  for (j in 1:K) {for (i in 1:n) {
+    sub_samp[i,,j] <- (mat[ i * K + j,] - mat[ (i - 1) * K + j,])^2
+  }  }
+  sub_vols <- matrix(,K, ncol(mat))
+  
+  for (j in 1:ncol(mat)) {for (i in 1:K) {
+    sub_vols[i, j] <- sum(sub_samp[1:n, j, i])
+  }  }
+  avg_vols <- 1/K * colSums(sub_vols)
+  TSRV = (1-(n-K+1)/(K*n))^(-1)*(avg_vols - (n-K+1)/(K*n) * RV)
+  #combine columns
+  vol_all=data.frame(RV,BPV,TPV,TRV,RK_TK,RK_B,RK_2O,RK_E,RK_C,TSRV,MinRV,MedRV)
   mean_vol=rowMeans(vol_all)
   mean_vol
 }
@@ -75,78 +107,78 @@ coeff_list = c(0.000006,0.000015,0.00005,0.00005,
 
 #Generate Charts
 for(j in 1:length(interval_list)){
-for(i in 1:length(comp_list)){
-  comp = comp_list[i]
-  coeff = coeff_list[((j-1)*4+i)]
-  raw1=read.csv(file=paste0(comp,interval_list[j],yr,"e.csv"), header=FALSE, sep=",")
-  rv=rv_calc(log(raw1))
-  meanvol=Vol_calc(log(raw1))
-  close=read.csv(file=paste0(comp,"close",yr,"e.csv"),header=FALSE)
-  close = close[,1]
-  
-  merged1 = data.frame(datefile,close,rv)
-  merged1$dates = as.Date(merged1$datefile, "%m/%d/%Y")
-  
-  merged2 = data.frame(datefile,close,meanvol)
-  merged2$dates = as.Date(merged2$datefile, "%m/%d/%Y")
-  
-  fig1 = ggplot(merged1, aes(x=dates)) +
-    geom_bar( aes(y=rv/coeff), stat="identity", size=.1, fill=c1, color=c1, alpha=.1) + 
-    geom_line( aes(y=close),size=.1, color=c2 ) +
-    scale_y_continuous(
-      # Features of the first axis
-      name = "Closing Price",
-      # Add a second axis and specify its features
-      sec.axis = sec_axis( trans=~.*coeff, name="Volatility"),
-      expand = c(0.005,0)
-    ) + 
-    scale_x_date(date_breaks="1 year",date_labels="%Y", expand = c(0.005,0)) +
-    theme_classic()+
-    theme(
-      aspect.ratio = 1,
-      axis.title.y = element_text(color = c2, size=13),
-      axis.title.y.right = element_text(color = c1, size=13),
-      axis.title.x=element_blank(),
-      axis.line.y=element_blank(),
-      axis.line.y.right=element_blank(),
-      axis.line.x=element_blank(),
-      panel.border=element_rect(color="black",fill=NA,size=0.4)
-    )
-  CairoPNG(file=paste0(comp,interval_list[j],"rv.png"),width = 3.5,height = 2.8,units="in",dpi=96) 
-  print(fig1)
-  Sys.sleep(time1)
-  print(fig1)
-  dev.off()
- 
-  fig2 = ggplot(merged2, aes(x=dates)) +
-    geom_bar( aes(y=meanvol/coeff), stat="identity", size=.1, fill=c1, color=c1, alpha=.1) + 
-    geom_line( aes(y=close),size=.1, color=c2 ) +
-    scale_y_continuous(
-      # Features of the first axis
-      name = "Closing Price",
-      # Add a second axis and specify its features
-      sec.axis = sec_axis( trans=~.*coeff, name="Volatility"),
-      expand = c(0.005,0)
-    ) + 
-    scale_x_date(date_breaks="1 year",date_labels="%Y", expand = c(0.005,0)) +
-    theme_classic()+
-    theme(
-      aspect.ratio = 1,
-      axis.title.y = element_text(color = c2, size=13),
-      axis.title.y.right = element_text(color = c1, size=13),
-      axis.title.x=element_blank(),
-      axis.line.y=element_blank(),
-      axis.line.y.right=element_blank(),
-      axis.line.x=element_blank(),
-      panel.border=element_rect(color="black",fill=NA,size=0.4)
-    )
-  CairoPNG(file=paste0(comp,interval_list[j],"meanvol.png"),width = 3.5,height = 2.8,units="in",dpi=96) 
-  print(fig2)
-  Sys.sleep(time1)
-  print(fig2)
-  dev.off()
-  
-}
+  for(i in 1:length(comp_list)){
+    comp = comp_list[i]
+    coeff = coeff_list[((j-1)*4+i)]
+    raw1=read.csv(file=paste0(comp,interval_list[j],yr,"e.csv"), header=FALSE, sep=",")
+    rv=rv_calc(log(raw1))
+    meanvol=Vol_calc(log(raw1))
+    close=read.csv(file=paste0(comp,"close",yr,"e.csv"),header=FALSE)
+    close = close[,1]
+    
+    merged1 = data.frame(datefile,close,rv)
+    merged1$dates = as.Date(merged1$datefile, "%m/%d/%Y")
+    
+    merged2 = data.frame(datefile,close,meanvol)
+    merged2$dates = as.Date(merged2$datefile, "%m/%d/%Y")
+    
+    fig1 = ggplot(merged1, aes(x=dates)) +
+      geom_bar( aes(y=rv/coeff), stat="identity", size=.1, fill=c1, color=c1, alpha=.1) + 
+      geom_line( aes(y=close),size=.1, color=c2 ) +
+      scale_y_continuous(
+        # Features of the first axis
+        name = "Closing Price",
+        # Add a second axis and specify its features
+        sec.axis = sec_axis( trans=~.*coeff, name="Volatility"),
+        expand = c(0.005,0)
+      ) + 
+      scale_x_date(date_breaks="1 year",date_labels="%Y", expand = c(0.005,0)) +
+      theme_classic()+
+      theme(
+        aspect.ratio = 1,
+        axis.title.y = element_text(color = c2, size=13),
+        axis.title.y.right = element_text(color = c1, size=13),
+        axis.title.x=element_blank(),
+        axis.line.y=element_blank(),
+        axis.line.y.right=element_blank(),
+        axis.line.x=element_blank(),
+        panel.border=element_rect(color="black",fill=NA,size=0.4)
+      )
+    CairoPNG(file=paste0(comp,interval_list[j],"rv.png"),width = 3.5,height = 2.8,units="in",dpi=96) 
+    print(fig1)
+    Sys.sleep(time1)
+    print(fig1)
+    dev.off()
+    
+    fig2 = ggplot(merged2, aes(x=dates)) +
+      geom_bar( aes(y=meanvol/coeff), stat="identity", size=.1, fill=c1, color=c1, alpha=.1) + 
+      geom_line( aes(y=close),size=.1, color=c2 ) +
+      scale_y_continuous(
+        # Features of the first axis
+        name = "Closing Price",
+        # Add a second axis and specify its features
+        sec.axis = sec_axis( trans=~.*coeff, name="Volatility"),
+        expand = c(0.005,0)
+      ) + 
+      scale_x_date(date_breaks="1 year",date_labels="%Y", expand = c(0.005,0)) +
+      theme_classic()+
+      theme(
+        aspect.ratio = 1,
+        axis.title.y = element_text(color = c2, size=13),
+        axis.title.y.right = element_text(color = c1, size=13),
+        axis.title.x=element_blank(),
+        axis.line.y=element_blank(),
+        axis.line.y.right=element_blank(),
+        axis.line.x=element_blank(),
+        panel.border=element_rect(color="black",fill=NA,size=0.4)
+      )
+    CairoPNG(file=paste0(comp,interval_list[j],"meanvol.png"),width = 3.5,height = 2.8,units="in",dpi=96) 
+    print(fig2)
+    Sys.sleep(time1)
+    print(fig2)
+    dev.off()
+    
+  }
 }
 
 #Generating a single chart for testing purposes
