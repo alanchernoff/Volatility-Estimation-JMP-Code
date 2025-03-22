@@ -1,4 +1,4 @@
-setwd("C:/Users/acher/JMP/MC Data/")
+setwd("C:/Users/acher/JMP/data/")
 library(dplyr)
 library(TTR)
 library(tidyverse)
