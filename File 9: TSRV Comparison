@@ -1,0 +1,40 @@
+setwd("/Users/acher/JMP/data")
+comp_list = c("AAPL","AXP","BA","CAT","CSCO", "CVX","DIS","HD","IBM",
+              "INTC","JNJ","JPM","KO","MCD","MMM","MRK","MSFT","NKE",
+              "PFE","UNH","UTX","VZ","WMT","XOM") 
+
+yr="2017-2019"
+yr_pre="2012-2016"
+Vol_calc <- function (raw){
+  mat=data.matrix(raw, rownames.force = NA) 
+  mat=t(mat)
+  #mat=log(mat)
+  #calculate RV
+  dif=diff(mat)
+  RV=colSums((dif)^2)
+  n <- 5
+  K <- (nrow(mat)-1)/(n+1)
+  sub_samp<- array(, dim = c(n, ncol(mat), K))
+  for (j in 1:K) {for (i in 1:n) {
+    sub_samp[i,,j] <- (mat[ i * K + j,] - mat[ (i - 1) * K + j,])^2
+  }  }
+  sub_vols <- matrix(,K, ncol(mat))
+  
+  for (j in 1:ncol(mat)) {for (i in 1:K) {
+    sub_vols[i, j] <- sum(sub_samp[1:n, j, i])
+  }  }
+  avg_vols <- 1/K * colSums(sub_vols)
+  TSRV = (1-(n-K+1)/(K*n))^(-1)*(avg_vols - (n-K+1)/(K*n) * RV)
+  
+  vol_df=data.frame(TSRV)
+  #vol_df=as.data.frame(vol_df)
+  
+  vol_df
+} #used in MC_table & MC_table_clean
+for(i in 1:length(comp_list)){
+  comp=comp_list[i]
+  raw1_pre=read.csv(file=paste0(comp,"1sec",yr_pre,"e.csv"), row.names = 1, header=FALSE, sep=",")
+  
+  vols1=Vol_calc(log(raw1_pre))
+  write.csv(vols1,file=paste0("C:\\Users\\acher\\JMP\\data\\pre",comp,"TSRV.csv"), row.names = TRUE)
+}
