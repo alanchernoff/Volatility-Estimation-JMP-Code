@@ -65,8 +65,8 @@ Vol_calc <- function (raw){
   sub_vols <- matrix(,K, ncol(mat))
   
   for (j in 1:ncol(mat)) {for (i in 1:K) {
-      sub_vols[i, j] <- sum(sub_samp[1:n, j, i])
-    }  }
+    sub_vols[i, j] <- sum(sub_samp[1:n, j, i])
+  }  }
   avg_vols <- 1/K * colSums(sub_vols)
   TSRV = (1-(n-K+1)/(K*n))^(-1)*(avg_vols - (n-K+1)/(K*n) * RV)
   #combine columns
@@ -79,9 +79,9 @@ Vol_calc <- function (raw){
 interval_list = c("1min","2.5min","5min")
 vol_names =c("RV","BPV","TPV","TRV","RK_TK","RK_B","RK_2O","RK_E","RK_C","TSRV","MinRV","MedRV")
 
-Estimation_table<-function(vol_names,interval_list,i,yr_pre){
+Estimation_table<-function(vol_names,interval_list,i,yr_pre,rvoralt){
   comp = comp_list[i]
-  PT_RV=read.csv(file=paste0("pre",comp,"RV.csv"), header=TRUE, sep=",", row.names=1)
+  PT_RV=read.csv(file=paste0("pre",comp,rvoralt,".csv"), header=TRUE, sep=",", row.names=1)
   raw1_pre=read.csv(file=paste0(comp,interval_list[1],yr_pre,"e.csv"), header=FALSE, sep=",")
   raw2_pre=read.csv(file=paste0(comp,interval_list[2],yr_pre,"e.csv"), header=FALSE, sep=",")
   raw3_pre=read.csv(file=paste0(comp,interval_list[3],yr_pre,"e.csv"), header=FALSE, sep=",")
@@ -211,7 +211,7 @@ convert_table <-function(sharps,vol_names,interval_list){
   vol_names = as.character(vol_names)
   names(vol_names) <- paste0("V",2:(length(vol_names)+1))
   sharps <- rename_with(.data = sharps, .cols = starts_with("V"), .fn = function(x){vol_names[x]})
-                       
+  
   sharps
 }
 
@@ -226,7 +226,7 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
     comp = comp_list[i]#i
     
     #generate volatilities for OLS and LASSO estimation
-    df = Estimation_table(vol_names,interval_list,i,yr_pre)
+    df = Estimation_table(vol_names,interval_list,i,yr_pre,"RV")
     
     #estimate OLS and LASSO models 
     ols_full <-model_reg_full(vol_names,interval_list,df)
@@ -235,13 +235,23 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
     ols5 <-model_reg(vol_names,interval_list,3,df)
     las <-model_lasso(vol_names,interval_list,df)
     
+    #generate volatilities for alt OLS and LASSO estimation
+    dfa = Estimation_table(vol_names,interval_list,i,yr_pre,"TSRV")
+    
+    #estimate OLS and LASSO models 
+    ols_fulla <-model_reg_full(vol_names,interval_list,dfa)
+    ols1a <-model_reg(vol_names,interval_list,1,dfa)
+    ols2.5a <-model_reg(vol_names,interval_list,2,dfa)
+    ols5a <-model_reg(vol_names,interval_list,3,dfa)
+    lasa <-model_lasso(vol_names,interval_list,dfa)
+    
     #read in 3month t-bill & closing prices
     rf3mo = read.csv(file=paste("3mo",yr,".csv",sep=""),header=FALSE)
     rf3mo=rf3mo[,1]
     rf3mo=rf3mo/360
     close=read.csv(file=paste(comp,"close",yr,"e.csv",sep=""),header=FALSE) #e
     close = close[,1]
-
+    
     #read in sub-sampled files
     raw1=read.csv(file=paste0(comp,interval_list[1],yr,"e.csv"), header=FALSE, sep=",")
     raw2=read.csv(file=paste0(comp,interval_list[2],yr,"e.csv"), header=FALSE, sep=",")
@@ -281,13 +291,18 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
     vols$MeanJVol_2.5min <-rowMeans(as.matrix(vols[,c(14,15,16,23,24)]))
     vols$MeanJVol_5min <-rowMeans(as.matrix(vols[,c(26,27,28,35,36)]))
     vols$MeanJVol_all <-rowMeans(as.matrix(vols[,c(2,3,4,11,12,14,15,16,23,24,26,27,28,35,36)]))
-  
+    
     #calculate OLS and LASSO volatilities
     vols$OLS_Vol_full <- predict(ols_full,vols)
-    vols$OLS_Vol_1 <- predict(ols1,vols)
-    vols$OLS_Vol_2.5 <- predict(ols2.5,vols)
-    vols$OLS_Vol_5 <- predict(ols5,vols)
+    vols$OLS_Vol_1min <- predict(ols1,vols)
+    vols$OLS_Vol_2.5min <- predict(ols2.5,vols)
+    vols$OLS_Vol_5min <- predict(ols5,vols)
     vols$LASSO_Vol <- predict(las,as.matrix(vols[,1:36]))
+    vols$OLS_alt_Vol_full <- predict(ols_fulla,vols)
+    vols$OLS_alt_Vol_1min <- predict(ols1a,vols)
+    vols$OLS_alt_Vol_2.5min <- predict(ols2.5a,vols)
+    vols$OLS_alt_Vol_5min <- predict(ols5a,vols)
+    vols$LASSO_alt_Vol <- predict(lasa,as.matrix(vols[,1:36]))
     
     vol_cols = colnames(vols)
     
@@ -309,7 +324,7 @@ sharp_table<-function(comp,vol_names,interval_list,yr,yr_pre){
   sharps_full
   
 } 
-  
+
 comp_list = c("AAPL","AXP","BA","CAT","CSCO", "CVX","DIS","HD","IBM",
               "INTC","JNJ","JPM","KO","MCD","MMM","MRK","MSFT","NKE",
               "PFE","UNH","UTX","VZ","WMT","XOM") 
@@ -324,4 +339,4 @@ sharps_full=sharps_full[-1,]
 
 View(sharps_full)
 
-write.csv(sharps_full,"C:\\Users\\acher\\JMP\\sharp_Table_c.csv", row.names = TRUE)
+write.csv(sharps_full,"C:\\Users\\acher\\JMP\\sharp_Table_full.csv", row.names = TRUE)
