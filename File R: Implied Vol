@@ -1,0 +1,30 @@
+setwd("C:/Users/acher/JMP/data/")
+library(dplyr)
+library(TTR)
+library(tidyverse)
+library(matrixStats)
+library(glmnet)
+library(zoo)
+
+lagpad <- function(x) { return (c(x[(1+1) : length(x)], rep(NA, 1)))}
+
+comp_list = c("AAPL","IBM") 
+vix_list = c("vxapl","vxibm")
+comp = "IBM"
+yr="2017-2019"
+
+vols = read.csv(file=paste("vxibm",yr,".csv",sep=""),header=FALSE)
+close=read.csv(file=paste(comp,"close",yr,"e.csv",sep=""),header=FALSE)
+rf3mo = read.csv(file=paste("3mo",yr,".csv",sep=""),header=FALSE)
+
+movavg5=SMA(vols,5)
+movavg20=SMA(vols,20)
+signal = ifelse(movavg5 < movavg20, 1, 0)
+entry <- signal == 1 & c(0, signal[-length(signal)]) == 0
+exit  <- signal == 0 & c(0, signal[-length(signal)]) == 1
+tc <- 0.0005 * (entry | exit)
+returns=lagpad(ROC(close))*signal-tc
+returns=na.omit(returns-rf3mo)
+sharps <- mean(returns$V1) / sd(returns$V1)
+sharps
+
