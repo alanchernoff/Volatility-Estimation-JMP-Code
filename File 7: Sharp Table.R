@@ -181,7 +181,10 @@ sharp_Calc = function(vols,rf3mo,close,sharps,j){
     movavg5=SMA(vols[,i],5)
     movavg20=SMA(vols[,i],20)
     signal = ifelse(movavg5 < movavg20, 1, 0)
-    returns=lagpad(ROC(close))*signal
+    entry <- signal == 1 & c(0, signal[-length(signal)]) == 0
+    exit  <- signal == 0 & c(0, signal[-length(signal)]) == 1
+    tc <- 0.0005 * (entry | exit)
+    returns=lagpad(ROC(close))*signal-tc
     returns=na.omit(returns-rf3mo)
     sharps[j,i+1] <- c((mean(returns))/sd(returns))
   }
@@ -193,7 +196,10 @@ sd_ret_Calc = function(vols,rf3mo,close,sdevs,j){
     movavg5=SMA(vols[,i],5)
     movavg20=SMA(vols[,i],20)
     signal = ifelse(movavg5 < movavg20, 1, 0)
-    returns=lagpad(ROC(close))*signal
+    entry <- signal == 1 & c(0, signal[-length(signal)]) == 0
+    exit  <- signal == 0 & c(0, signal[-length(signal)]) == 1
+    tc <- 0.0005 * (entry | exit)
+    returns=lagpad(ROC(close))*signal-tc
     returns=na.omit(returns-rf3mo)
     
     sd_str = toString(format(round(sd(returns), 3), nsmall = 3))
@@ -339,4 +345,4 @@ sharps_full=sharps_full[-1,]
 
 View(sharps_full)
 
-write.csv(sharps_full,"C:\\Users\\acher\\JMP\\sharp_Table_full.csv", row.names = TRUE)
+write.csv(sharps_full,"C:\\Users\\acher\\JMP\\sharp_Table_tt.csv", row.names = TRUE)
